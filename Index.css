@@ -1,0 +1,210 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+
+
+body{
+ background-image: linear-gradient(
+rgba(0,0,0,0.45),
+rgba(0,0,0,0.45)
+),
+url("Imagenes page/fondoHats.jpg");
+
+background-size:cover;
+
+background-position:center;
+
+background-repeat:no-repeat;
+
+
+height:100vh;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+    
+}
+
+
+
+.captcha-container{
+
+    width:100%;
+
+    padding:20px;
+
+}
+
+
+
+.captcha-card{
+
+    max-width:420px;
+
+    margin:auto;
+
+    background:white;
+
+    padding:40px;
+
+    border-radius:15px;
+
+    box-shadow:0 10px 40px rgba(0,0,0,.15);
+
+    text-align:center;
+
+}
+
+
+
+.logo{
+
+    font-size:50px;
+
+}
+
+
+
+h1{
+
+    margin:15px 0;
+
+    color:#111;
+
+}
+
+
+
+p{
+
+    color:#666;
+
+    margin-bottom:25px;
+
+}
+
+
+
+.verify-box{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    background:#f5f5f5;
+
+    padding:20px;
+
+    border:1px solid #ddd;
+
+    margin-bottom:25px;
+
+}
+
+
+
+.checkbox{
+
+    width:28px;
+
+    height:28px;
+
+    background:white;
+
+    border:2px solid #777;
+
+    cursor:pointer;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+
+.checkbox.active{
+
+    background:#111;
+
+}
+
+
+
+.checkbox.active span::after{
+
+    content:"✓";
+
+    color:white;
+
+    font-size:20px;
+
+}
+
+
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    background:#111;
+
+    color:white;
+
+    border:none;
+
+    cursor:pointer;
+
+    border-radius:8px;
+
+    font-size:16px;
+
+}
+
+
+
+button:hover{
+
+    background:#333;
+
+}
+
+
+
+#mensaje{
+
+    margin-top:20px;
+
+    color:red;
+
+}
+
+
+
+/* RESPONSIVE */
+
+
+@media(max-width:480px){
+
+
+    .captcha-card{
+
+        padding:25px;
+
+    }
+
+
+}
