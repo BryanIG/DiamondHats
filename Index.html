@@ -4,74 +4,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Diamond Hats | Acceso</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #B08968;
+            --primary-hover: #8B6B4E;
+            --bg: #ECE7E1;
+            --card: #F8F5F1;
+            --input: #EFEAE5;
+            --text: #3A3028;
+            --text-dim: #7A6D63;
+            --border: #DDD3CA;
+        }
 
-    <link rel="stylesheet" href="index.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: url("Imagenes page/fondito.jpg") center center/cover no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+
+            background: url("Imagenes page/fondito.jpg") center center/cover no-repeat;
+
+            filter: blur(10px);
+            transform: scale(1.08);
+
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0, 0, 0, .35);
+
+            z-index: -1;
+        }
+
+        /* --- ESTILOS DEL CAPTCHA SIMULADO --- */
+        .captcha-container {
+            position: absolute;
+            z-index: 1000;
+            transition: all 0.5s ease-in-out;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .captcha-card {
+            background: rgba(248, 245, 241, .90);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .6);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 400px;
+            color: var(--text);
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .captcha-card h1 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .captcha-card p {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 25px;
+        }
+
+        .verify-box {
+            background-color: var(--input);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--text-dim);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .checkbox.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox.active #check::after {
+            content: "✓";
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        #entrar {
+            background: linear-gradient(135deg, #B08968, #8B6B4E);
+            color: white;
+            border: none;
+            padding: 12px 45px;
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s ease;
+        }
+
+        #entrar:active {
+            transform: scale(0.95);
+        }
+
+        #mensaje {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Clase para desvanecer el captcha */
+        .captcha-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.9);
+        }
+
+        /* --- ESTILOS DEL LOGIN INTERACTIVO --- */
+        .container {
+            background: rgba(248, 245, 241, .90);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, .6);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            width: 800px;
+            max-width: 100%;
+            min-height: 500px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Se muestra cuando el captcha se valida */
+        .container.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .sign-up-container {
+            left: 0;
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .container.active .sign-in-container {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .container.active .sign-up-container {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        @keyframes show {
+
+            0%,
+            49.99% {
+                opacity: 0;
+                z-index: 1;
+            }
+
+            50%,
+            100% {
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+
+        form {
+            background-color: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            height: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+
+        input {
+            background: var(--input);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border: none;
+            padding: 12px 15px;
+            margin: 8px 0;
+            width: 100%;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .main-btn {
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #B08968, #8B6B4E);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.1s ease;
+        }
+
+        .main-btn:active {
+            transform: scale(0.95);
+        }
+
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .container.active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .overlay {
+            background: linear-gradient(135deg, #D6C3B1, #A98467);
+            color: #FFFFFF;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .container.active .overlay {
+            transform: translateX(50%);
+        }
+
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            text-align: center;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-left {
+            transform: translateX(-20%);
+        }
+
+        .container.active .overlay-left {
+            transform: translateX(0);
+        }
+
+        .overlay-right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .container.active .overlay-right {
+            transform: translateX(20%);
+        }
+
+        .ghost-btn {
+            background-color: transparent;
+            border: 1px solid white;
+            border-radius: 50px;
+            color: white;
+            padding: 10px 40px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        .container p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin: 20px 0;
+            opacity: 0.8;
+            color: white;
+        }
+    </style>
 </head>
-
 
 <body>
 
+    <!-- SECTION 1: CAPTCHA INTERFACE -->
+    <div class="captcha-container" id="captchaSection">
+        <div class="captcha-card">
+            <div class="logo">💎</div>
+            <h1>Diamond Hats</h1>
+            <p>Verifica tu acceso para entrar a la tienda</p>
 
-<div class="captcha-container">
-
-    <div class="captcha-card">
-
-        <div class="logo">
-            💎
-        </div>
-
-
-        <h1>
-            Diamond Hats
-        </h1>
-
-
-        <p>
-            Verifica tu acceso para entrar a la tienda
-        </p>
-
-
-
-        <div class="verify-box">
-
-            <div class="checkbox" id="checkbox">
-
-                <span id="check">
-                    
-                </span>
-
+            <div class="verify-box">
+                <div class="checkbox" id="checkbox">
+                    <span id="check"></span>
+                </div>
+                <span>No soy un robot</span>
             </div>
 
-
-            <span>
-                No soy un robot
-            </span>
-
-
+            <button id="entrar">Entrar</button>
+            <p id="mensaje"></p>
         </div>
-
-
-
-        <button id="entrar">
-            Entrar
-        </button>
-
-
-        <p id="mensaje"></p>
-
-
     </div>
 
+    <!-- SECTION 2: SLIDING LOGIN & SIGN UP INTERFACE -->
+    <div class="container" id="loginContainer">
+        <!-- Sign Up Panel -->
+        <div class="form-container sign-up-container">
+            <form action="#">
+                <h1>Create Account</h1>
+                <input type="text" placeholder="Full Name" />
+                <input type="email" placeholder="Email" />
+                <input type="password" placeholder="Password" />
+                <button class="main-btn">Sign Up</button>
+            </form>
+        </div>
 
-</div>
+        <!-- Sign In Panel -->
+        <div class="form-container sign-in-container">
+            <form action="#">
+                <h1>Sign In</h1>
+                <input type="email" placeholder="Email" />
+                <input type="password" placeholder="Password" />
+                <button class="main-btn" id="loginBtn">Login</button>
+            </form>
+        </div>
 
+        <!-- Sliding Overlay Panel -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost-btn" id="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Welcome back</h1>
+                    <p>Login to review your latest profit from investments.</p>
+                    <button class="ghost-btn" id="signUp">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // Elementos del DOM
+        const checkbox = document.getElementById("checkbox");
+        const entrar = document.getElementById("entrar");
+        const mensaje = document.getElementById("mensaje");
 
-<script src="script.js"></script>
+        const captchaSection = document.getElementById("captchaSection");
+        const loginContainer = document.getElementById("loginContainer");
 
+        const signUpBtn = document.getElementById('signUp');
+        const signInBtn = document.getElementById('signIn');
 
+        let verificado = false;
+
+        // Lógica del Checkbox del Captcha
+        checkbox.addEventListener("click", () => {
+            checkbox.classList.toggle("active");
+            verificado = !verificado;
+        });
+
+        // Evento para validar y cambiar de sección
+        entrar.addEventListener("click", () => {
+            if (verificado) {
+                mensaje.style.color = "#4caf50";
+                mensaje.textContent = "Acceso correcto";
+
+                setTimeout(() => {
+                    // Ocultamos el captcha y mostramos el login con animación fluida
+                    captchaSection.classList.add("hidden");
+                    loginContainer.classList.add("visible");
+                }, 1000);
+
+            } else {
+                mensaje.style.color = "#f44336";
+                mensaje.textContent = "Debes verificar que eres humano";
+            }
+        });
+
+        // Controles deslizantes del Login/Registro
+        signUpBtn.addEventListener('click', () => {
+            loginContainer.classList.add("active");
+        });
+
+        signInBtn.addEventListener('click', () => {
+            loginContainer.classList.remove("active");
+        });
+
+        const loginBtn = document.getElementById("loginBtn");
+        loginBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.location.href = "tienda.html";
+        });
+    </script>
 </body>
 
 </html>
