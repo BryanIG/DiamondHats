@@ -2,100 +2,142 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Diamond Hats | Gorras</title>
-
+    <link rel="stylesheet" href="tienda.css">
     <link rel="stylesheet" href="gorras.css">
-
 </head>
 
 <body>
+    <!-- HEADER FIJO MULTINIVEL -->
+    <header class="header">
+        <!-- Fila Superior: Logo y Carrito -->
+        <div class="header-container">
+            <div class="logo">
+                <img src="Imagenes page/Header1.png" alt="Diamond Hats">
+            </div>
 
-<header class="header">
+            <div class="icons">
+                <button id="abrir-carrito" class="carrito-btn">
+                    <span>🛒</span>
+                    <span id="contador">0</span>
+                </button>
+            </div>
 
-    <h1>Catálogo Hats</h1>
-
-    <button id="volver">
-        ⬅ Volver al Inicio
-       <a href="tienda.html"> 
-        </a> 
-    </button>
-
-      <button id="abrir-carrito">
-
-            🛒 <span id="contador">0</span>
-
-        </button>
-
-</header>
-
-
-
-<main>
-
-    <div id="contenedor-productos">
-
-    </div>
-
-     <!-- CARRITO LATERAL -->
-
-    <aside id="carrito">
-
-
-        <div class="carrito-header">
-
-            <h2>
-                Mi carrito 
-            </h2>
-
-
-            <button id="cerrar-carrito">
-                ✖
-            </button>
-
+            <div class="menu-btn">
+                ☰
+            </div>
         </div>
 
+        <!-- Fila Intermedia: Navegación Principal -->
+        <nav class="navbar">
+            <a href="tienda.html">Inicio</a>
+            <a href="gorras.html">Gorras</a>
+            <a href="marcas.html">Marcas</a>
+            <a href="ofertas.html">Ofertas</a>
+            <a href="contacto.html">Contacto</a>
+        </nav>
 
+        <!-- Fila Inferior: Buscador Dinámico Funcional -->
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="buscador-gorras" placeholder="Buscar gorras por nombre, modelo o marca...">
+                <button type="button">🔍</button>
+            </div>
+        </div>
+    </header>
 
-        <div id="productos-carrito">
+    <main>
+        <!-- Contenedor dinámico por secciones -->
+        <div id="contenedor-productos"></div>
 
-            <!-- Aquí aparecerán las gorras -->
+        <!-- CARRITO LATERAL -->
+        <aside id="carrito">
+            <div class="carrito-header">
+                <h2>Mi carrito</h2>
+                <button id="cerrar-carrito">✖</button>
+            </div>
+            <div id="productos-carrito">
+                <!-- Aquí aparecerán las gorras -->
+            </div>
+            <div class="carrito-footer">
+                <h3>Total: $<span id="total">0</span> MXN</h3>
+                <button class="finalizar">Finalizar compra</button>
+            </div>
+        </aside>
 
+        <!-- VENTANA EMERGENTE (MODAL DE DETALLES DEL PRODUCTO) -->
+        <div id="modal-producto" class="modal-overlay">
+            <div class="modal-container">
+                <button id="cerrar-modal" class="modal-cerrar-btn">✖</button>
+                
+                <div class="modal-content">
+                    <!-- LADO IZQUIERDO: IMAGEN PRINCIPAL -->
+                    <div class="modal-izq">
+                        <div class="modal-img-principal">
+                            <img id="modal-main-img" src="" alt="Gorra Principal">
+                        </div>
+                    </div>
+
+                    <!-- LADO DERECHO: INFORMACIÓN Y ACCIONES -->
+                    <div class="modal-der">
+                        <span class="modal-brand">DIAMOND HATS</span>
+                        <h1 id="modal-nombre" class="modal-title"></h1>
+                        <div id="modal-precio" class="modal-price"></div>
+
+                        <!-- Botones de compra directa -->
+                        <div class="modal-acciones-compra">
+                            <button id="modal-btn-agregar" class="modal-btn-add">Añadir a la cesta</button>
+                            <button class="modal-btn-fav">♡</button>
+                        </div>
+
+                        <!-- Lista de Características -->
+                        <ul class="modal-caracteristicas">
+                            <li><span class="check-icon">✓</span> En stock, se puede enviar inmediatamente</li>
+                            <li><span class="check-icon">✓</span> Envío gratuito a partir de $4999</li>
+                            <li><span class="check-icon">✓</span> Gran selección</li>
+                            <li><span class="check-icon">✓</span> 100 días de devolución de compra</li>
+                        </ul>
+
+                        <!-- ACORDEÓN ANIMADO -->
+                        <div class="modal-colapsables">
+                            <div class="acordeon-item">
+                                <div class="acordeon-header" onclick="conmutarAcordeon(this)">
+                                    Guía de tallas <span>▼</span>
+                                </div>
+                                <div class="acordeon-content-wrapper">
+                                    <div class="acordeon-content">
+                                        <p>Esta gorra cuenta con un broche trasero regulable de alta resistencia. Se adapta cómodamente a circunferencias de cabeza de entre 55 y 60 centímetros de diámetro.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="acordeon-item">
+                                <div class="acordeon-header" onclick="conmutarAcordeon(this)">
+                                    Información del producto <span>▼</span>
+                                </div>
+                                <div class="acordeon-content-wrapper">
+                                    <div class="acordeon-content">
+                                        <p id="modal-descripcion"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
 
-
-
-        <div class="carrito-footer">
-
-
-            <h3>
-                Total:
-                $<span id="total">0</span> MXN
-            </h3>
-
-
-            <button class="finalizar">
-
-                Finalizar compra
-
-            </button>
-
-
+        <!-- AVISO EMERGENTE NOTIFICACIÓN TOAST -->
+        <div id="toast-notificacion" class="toast-alerta">
+            <span class="toast-icon">✓</span> ¡Producto añadido a tu carrito!
         </div>
+    </main>
 
-
-    </aside>
-
-
-</main>
-
-<script src="gorras.js"></script>
-<script src="carrito.js"></script>
-
+    <script src="gorras.js"></script>
+    <script src="carrito.js"></script>
 </body>
 
 </html>
