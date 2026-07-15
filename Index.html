@@ -445,20 +445,17 @@
 
         let verificado = false;
 
-        // Lógica del Checkbox del Captcha
         checkbox.addEventListener("click", () => {
             checkbox.classList.toggle("active");
             verificado = !verificado;
         });
 
-        // Evento para validar y cambiar de sección
         entrar.addEventListener("click", () => {
             if (verificado) {
                 mensaje.style.color = "#4caf50";
                 mensaje.textContent = "Acceso correcto";
 
                 setTimeout(() => {
-                    // Ocultamos el captcha y mostramos el login con animación fluida
                     captchaSection.classList.add("hidden");
                     loginContainer.classList.add("visible");
                 }, 1000);
@@ -469,7 +466,6 @@
             }
         });
 
-        // Controles deslizantes del Login/Registro
         signUpBtn.addEventListener('click', () => {
             loginContainer.classList.add("active");
         });
