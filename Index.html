@@ -367,6 +367,179 @@
             opacity: 0.8;
             color: white;
         }
+
+        /* --- SECURITY & CAPTCHA ADDITIONS --- */
+        .verify-box-captcha {
+            background-color: var(--input);
+            padding: 12px 18px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            border: 1px solid rgba(204, 161, 66, 0.15);
+        }
+
+        .captcha-display {
+            font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 26px;
+            letter-spacing: 7px;
+            background: radial-gradient(circle at center, #261f18 0%, #110e0a 100%);
+            color: #cca142;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-shadow: 0 0 10px rgba(204, 161, 66, 0.5);
+            user-select: none;
+            flex-grow: 1;
+            text-align: center;
+            border: 2px solid rgba(204, 161, 66, 0.4);
+            box-shadow: 0 0 15px rgba(204, 161, 66, 0.1), inset 0 0 8px rgba(0, 0, 0, 0.9);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: skewX(-4deg);
+        }
+
+        /* Modern thin angled neon vectors for captcha background noise */
+        .captcha-display::before {
+            content: "";
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 120%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(204, 161, 66, 0.3), transparent);
+            transform: rotate(8deg);
+            pointer-events: none;
+        }
+
+        .captcha-display::after {
+            content: "";
+            position: absolute;
+            bottom: 30%;
+            left: -10%;
+            width: 120%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(204, 161, 66, 0.3), transparent);
+            transform: rotate(-10deg);
+            pointer-events: none;
+        }
+
+        .btn-captcha-refresh {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-captcha-refresh:hover {
+            transform: rotate(180deg);
+        }
+
+        .captcha-input-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .psw-strength-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e5dfd8;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .psw-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .psw-strength-text {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            display: block;
+            text-align: left;
+            width: 100%;
+        }
+
+        /* Lockout warning display */
+        .lockout-message {
+            color: #d32f2f !important;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* --- RESPONSIVIDAD (MOBILE & TABLET) --- */
+        @media (max-width: 480px) {
+            body {
+                background: url("Imagenes page/fondito.jpg") center/cover no-repeat;
+                height: auto;
+                min-height: 100vh;
+                padding: 20px 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                overflow: auto;
+            }
+
+            .captcha-container {
+                position: relative;
+                width: 100%;
+                margin: auto;
+            }
+
+            .captcha-card {
+                width: 100%;
+                max-width: 360px;
+                padding: 25px 15px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            .captcha-card h1 {
+                font-size: 22px;
+            }
+
+            .captcha-card p {
+                font-size: 13px;
+                margin-bottom: 15px;
+            }
+
+            .captcha-display {
+                font-size: 20px;
+                letter-spacing: 5px;
+                padding: 8px 10px;
+            }
+
+            .verify-box-captcha {
+                padding: 10px 12px;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .captcha-input-container {
+                margin-bottom: 15px;
+            }
+
+            #entrar {
+                padding: 10px 30px;
+                font-size: 13px;
+            }
+
+            #mensaje {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 
@@ -375,15 +548,18 @@
     <!-- SECTION 1: CAPTCHA INTERFACE -->
     <div class="captcha-container" id="captchaSection">
         <div class="captcha-card">
-            <div class="logo">💎</div>
+
             <h1>Diamond Hats</h1>
             <p>Verifica tu acceso para entrar a la tienda</p>
 
-            <div class="verify-box">
-                <div class="checkbox" id="checkbox">
-                    <span id="check"></span>
-                </div>
-                <span>No soy un robot</span>
+            <div class="verify-box-captcha">
+                <div class="captcha-display" id="captchaBox">CÓDIGO</div>
+                <button type="button" class="btn-captcha-refresh" id="refreshCaptcha"
+                    title="Generar otro código">🔄</button>
+            </div>
+            <div class="captcha-input-container">
+                <input type="text" id="captchaInput" placeholder="Escribe el código de arriba" maxlength="5"
+                    style="text-align: center; text-transform: uppercase;" required>
             </div>
 
             <button id="entrar">Entrar</button>
@@ -391,93 +567,45 @@
         </div>
     </div>
 
-    <!-- SECTION 2: SLIDING LOGIN & SIGN UP INTERFACE -->
-    <div class="container" id="loginContainer">
-        <!-- Sign Up Panel -->
-        <div class="form-container sign-up-container">
-            <form action="#">
-                <h1>Crea Tu Cuenta</h1>
-                <input type="text" placeholder="Usuario" />
-                <input type="email" placeholder="Correo" />
-                <input type="password" placeholder="Contraseña" />
-                <button class="main-btn">Registrate</button>
-            </form>
-        </div>
-
-        <!-- Sign In Panel -->
-        <div class="form-container sign-in-container">
-            <form action="#">
-                <h1>Logeate</h1>
-                <input type="email" placeholder="Correo" />
-                <input type="password" placeholder="Contraseña" />
-                <button class="main-btn" id="loginBtn">Inicia Sesion</button>
-            </form>
-        </div>
-
-        <!-- Sliding Overlay Panel -->
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1>Bienvenido De Vuelta</h1>
-                    <p>Para continuar porfavor ingresa tus datos.</p>
-                    <button class="ghost-btn" id="signIn">Logeate</button>
-                </div>
-                <div class="overlay-panel overlay-right">
-                    <h1>Bienvenido</h1>
-                    <p>Crea tu cuenta para ingresar a la tienda.</p>
-                    <button class="ghost-btn" id="signUp">Registrarse</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Elementos del DOM
-        const checkbox = document.getElementById("checkbox");
-        const entrar = document.getElementById("entrar");
-        const mensaje = document.getElementById("mensaje");
-
+        const captchaBox = document.getElementById("captchaBox");
+        const refreshCaptchaBtn = document.getElementById("refreshCaptcha");
+        const captchaInput = document.getElementById("captchaInput");
+        const entrarBtn = document.getElementById("entrar");
+        const mensajeText = document.getElementById("mensaje");
         const captchaSection = document.getElementById("captchaSection");
-        const loginContainer = document.getElementById("loginContainer");
 
-        const signUpBtn = document.getElementById('signUp');
-        const signInBtn = document.getElementById('signIn');
-
-        let verificado = false;
-
-        checkbox.addEventListener("click", () => {
-            checkbox.classList.toggle("active");
-            verificado = !verificado;
-        });
-
-        entrar.addEventListener("click", () => {
-            if (verificado) {
-                mensaje.style.color = "#4caf50";
-                mensaje.textContent = "Acceso correcto";
-
-                setTimeout(() => {
-                    captchaSection.classList.add("hidden");
-                    loginContainer.classList.add("visible");
-                }, 1000);
-
-            } else {
-                mensaje.style.color = "#f44336";
-                mensaje.textContent = "Debes verificar que eres humano";
+        // 1. CAPTCHA ALFANUMÉRICO REAL
+        let currentCaptcha = "";
+        function generarCaptcha() {
+            const caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let resultado = "";
+            for (let i = 0; i < 5; i++) {
+                resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
             }
-        });
+            currentCaptcha = resultado;
+            captchaBox.textContent = currentCaptcha;
+            captchaInput.value = "";
+        }
 
-        signUpBtn.addEventListener('click', () => {
-            loginContainer.classList.add("active");
-        });
+        // Generar captcha inicial
+        generarCaptcha();
 
-        signInBtn.addEventListener('click', () => {
-            loginContainer.classList.remove("active");
-        });
+        refreshCaptchaBtn.addEventListener("click", generarCaptcha);
 
-        const loginBtn = document.getElementById("loginBtn");
-        loginBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            window.location.href = "tienda.html";
+        entrarBtn.addEventListener("click", () => {
+            const inputVal = captchaInput.value.trim().toUpperCase();
+            if (inputVal === currentCaptcha) {
+                mensajeText.style.color = "#4caf50";
+                mensajeText.textContent = "Acceso verificado correctamente. Redirigiendo...";
+                setTimeout(() => {
+                    window.location.href = "tienda.html";
+                }, 800);
+            } else {
+                mensajeText.style.color = "#f44336";
+                mensajeText.textContent = "Código captcha incorrecto. Inténtalo de nuevo.";
+                generarCaptcha();
+            }
         });
     </script>
 </body>

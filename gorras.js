@@ -259,7 +259,7 @@ function renderizarGridOfertas(listaAImprimir, grid) {
                     </div>
                     <button 
                         class="comprar"
-                        onclick='procesarCompraDirecta(${JSON.stringify(producto)})'>
+                        onclick="procesarCompraDirecta(${indexOriginal})">
                         Comprar
                     </button>
                 </div>
@@ -323,7 +323,7 @@ function renderizarCatalogo(listaAImprimir) {
                         ${precioHTML}
                         <button 
                             class="comprar"
-                            onclick='procesarCompraDirecta(${JSON.stringify(producto)})'>
+                            onclick="procesarCompraDirecta(${indexOriginal})">
                             Comprar
                         </button>
                     </div>
@@ -425,7 +425,8 @@ function abrirModalDetalle(index) {
     modal.classList.add("activo");
 }
 
-function procesarCompraDirecta(producto) {
+function procesarCompraDirecta(index) {
+    const producto = productos[index];
     agregarCarrito({
         nombre: producto.nombre,
         descripcion: producto.descripcion,
