@@ -197,7 +197,7 @@ function inicializarTienda() {
     contenedorPrincipal.innerHTML = '';
 
     // 1. Renderizar la estructura base de las secciones una sola vez
-    Object.keys(categorias).forEach(claveCat => {
+    Object.keys(categorias).forEach((claveCat, index) => {
         contenedorPrincipal.innerHTML += `
             <section class="seccion-carrusel" id="seccion-${claveCat}">
                 <h2 class="seccion-titulo">${categorias[claveCat]}</h2>
@@ -208,6 +208,21 @@ function inicializarTienda() {
                 </div>
             </section>
         `;
+
+        if (index === 0) {
+            contenedorPrincipal.innerHTML += `
+                <div class="video-seccion-banner">
+                    <video autoplay loop muted playsinline class="banner-video">
+                        <source src="Imagenes page/videosecciongorras.mp4" type="video/mp4">
+                    </video>
+                    <div class="banner-video-overlay"></div>
+                    <div class="banner-video-text">
+                        <h2>Estilo Incomparable</h2>
+                        <p>Lleva tu look al siguiente nivel con Diamond Hats</p>
+                    </div>
+                </div>
+            `;
+        }
     });
 
     // 2. Adjuntar los escuchadores de scroll a los tracks
@@ -249,7 +264,9 @@ function renderizarGridOfertas(listaAImprimir, grid) {
         grid.innerHTML += `
             <div class="card card-oferta">
                 <span class="badge-oferta">🔥 -${producto.descuento}% OFF</span>
-                <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
+                <div class="img-container">
+                    <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
+                </div>
                 <div class="info">
                     <h2 onclick="abrirModalDetalle(${indexOriginal})">${producto.nombre}</h2>
                     <p>${producto.descripcion}</p>
@@ -316,7 +333,9 @@ function renderizarCatalogo(listaAImprimir) {
             trackDestino.innerHTML += `
                 <div class="card ${producto.enOferta ? 'card-oferta' : ''}">
                     ${badgeHTML}
-                    <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
+                    <div class="img-container">
+                        <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
+                    </div>
                     <div class="info">
                         <h2 onclick="abrirModalDetalle(${indexOriginal})">${producto.nombre}</h2>
                         <p>${producto.descripcion}</p>

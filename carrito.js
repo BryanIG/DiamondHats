@@ -444,16 +444,37 @@ const inputCard = document.getElementById("checkoutCard");
 
 if (inputCard) {
     inputCard.addEventListener("input", (e) => {
-        // Permitimos borrar y escribir de forma nativa sin balas intermedias que bloqueen el borrado
-        let val = inputCard.value.replace(/\D/g, '').substring(0, 16);
-        let formatted = "";
-        for (let i = 0; i < val.length; i++) {
-            formatted += val[i];
-            if ((i + 1) % 4 === 0 && (i + 1) < 16) {
-                formatted += " ";
+        const cursorPos = inputCard.selectionStart;
+        const oldLen = inputCard.value.length;
+
+        // Only digits, max 16
+        let digits = inputCard.value.replace(/\D/g, '').substring(0, 16);
+        // Format with spaces every 4 digits
+        let formatted = digits.replace(/(.{4})/g, '$1 ').trim();
+
+        inputCard.value = formatted;
+
+        // Restore cursor: compensate for added spaces
+        const newLen = inputCard.value.length;
+        const diff = newLen - oldLen;
+        const newCursor = Math.max(0, cursorPos + diff);
+        inputCard.setSelectionRange(newCursor, newCursor);
+    });
+
+    // Allow backspace on space characters (skip them)
+    inputCard.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+            const pos = inputCard.selectionStart;
+            if (pos > 0 && inputCard.value[pos - 1] === " ") {
+                e.preventDefault();
+                // Remove the digit before the space as well
+                const val = inputCard.value;
+                inputCard.value = val.substring(0, pos - 2) + val.substring(pos);
+                inputCard.setSelectionRange(pos - 2, pos - 2);
+                // Re-trigger formatter
+                inputCard.dispatchEvent(new Event("input"));
             }
         }
-        inputCard.value = formatted;
     });
 }
 
@@ -538,7 +559,24 @@ if (formCheckout) {
                     <strong>$${totalVal} MXN</strong>
                 </div>
                 <p class="ticket-receipt-alert">Hemos enviado este ticket de compra ficticio al correo: <strong>${emailFacturacion}</strong></p>
+                <div style="text-align:center;margin-top:15px;">
+                    <button id="btn-descargar-pdf" onclick="generarPDFTicket()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 28px;background:rgba(20,20,20,0.75);color:#fff;border:1.5px solid rgba(255,255,255,0.45);border-radius:30px;font-size:14px;font-weight:700;letter-spacing:0.5px;cursor:pointer;backdrop-filter:blur(6px);transition:all 0.3s ease;">
+                        📄 Descargar Ticket PDF
+                    </button>
+                </div>
             `;
+
+            // Store ticket data for PDF generation
+            window._ticketData = {
+                ticketId,
+                activeUser,
+                emailFacturacion,
+                cardHolder,
+                rawCard,
+                itemsHtml,
+                totalVal,
+                date: new Date().toLocaleString()
+            };
         }
 
         // Vaciar Carrito
@@ -571,3 +609,98 @@ window.addEventListener("click", (e) => {
         modalExito.classList.remove("activo");
     }
 });
+
+// =============================================
+// GENERACIÓN DE PDF - TICKET DE COMPRA
+// =============================================
+function generarPDFTicket() {
+    const d = window._ticketData;
+    if (!d) { alert("No hay datos de ticket disponibles."); return; }
+
+    // QR code URL: encodes the ticket ID so scanning shows "DIAMOND HATS | Ticket: DH-XXXXXX-MX"
+    const qrContent = encodeURIComponent(`DIAMOND HATS | Ticket: ${d.ticketId} | Total: $${d.totalVal} MXN | Cliente: ${d.activeUser}`);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrContent}`;
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket Diamond Hats - ${d.ticketId}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #111; padding: 40px; max-width: 620px; margin: 0 auto; }
+    .header { text-align: center; border-bottom: 2px solid #cca142; padding-bottom: 18px; margin-bottom: 20px; }
+    .header h1 { font-size: 26px; letter-spacing: 3px; color: #111; }
+    .header p { color: #888; font-size: 13px; margin-top: 4px; }
+    .meta { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 18px; }
+    .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin: 14px 0 6px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px dashed #eee; }
+    .info-row:last-child { border-bottom: none; }
+    .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; padding: 12px 0 0; border-top: 2px solid #cca142; margin-top: 10px; }
+    .stamp-qr { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+    .stamp { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #cca142; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #cca142; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 10px; }
+    .stamp .diamond { font-size: 22px; margin-bottom: 4px; }
+    .qr-block { text-align: center; }
+    .qr-block img { width: 120px; height: 120px; border: 1px solid #ddd; border-radius: 6px; }
+    .qr-block p { font-size: 10px; color: #999; margin-top: 5px; }
+    .footer { text-align: center; font-size: 11px; color: #bbb; margin-top: 28px; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💎 DIAMOND HATS</h1>
+    <p>Estilo con actitud y distinción</p>
+  </div>
+  <div class="meta">
+    <span><strong>Ticket ID:</strong> ${d.ticketId}</span>
+    <span><strong>Fecha:</strong> ${d.date}</span>
+  </div>
+
+  <div class="section-title">Datos del Cliente</div>
+  <div class="info-row"><span>Usuario</span><span>${d.activeUser}</span></div>
+  <div class="info-row"><span>Correo</span><span>${d.emailFacturacion}</span></div>
+  <div class="info-row"><span>Titular de Tarjeta</span><span>${d.cardHolder}</span></div>
+  <div class="info-row"><span>Tarjeta</span><span>**** **** **** ${d.rawCard.substring(12)}</span></div>
+
+  <div class="section-title">Productos</div>
+  ${d.itemsHtml.replace(/ticket-item-row/g, 'info-row')}
+
+  <div class="total-row">
+    <span>Total Pagado</span>
+    <span>$${d.totalVal} MXN</span>
+  </div>
+
+  <div class="stamp-qr">
+    <div class="stamp">
+      <div class="diamond">💎</div>
+      <div>DIAMOND<br>HATS</div>
+      <div style="font-size:8px;margin-top:4px;color:#888;">TIKET VERIFICADO</div>
+    </div>
+    <div class="qr-block">
+      <img src="${qrUrl}" alt="QR Ticket">
+      <p>Escanea para verificar tu compra</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 Diamond Hats · Todos los derechos reservados
+  </div>
+
+  <script>
+    window.onload = function() { setTimeout(function(){ window.print(); }, 400); };
+  <\/script>
+</body>
+</html>`;
+
+    const popup = window.open("", "_blank", "width=680,height=920,scrollbars=yes");
+    if (popup) {
+        popup.document.write(html);
+        popup.document.close();
+    } else {
+        alert("Por favor permite ventanas emergentes para descargar el ticket PDF.");
+    }
+}
+
+window.generarPDFTicket = generarPDFTicket;

@@ -51,8 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         <form id="authRegisterForm" class="auth-form">
                             <h2>Crea Tu Cuenta</h2>
                             <div class="checkout-field">
-                                <label for="authRegUser">Usuario</label>
-                                <input type="text" id="authRegUser" placeholder="Usuario" required>
+                                <label for="authRegUser">Nombre de usuario (generado automáticamente, editable)</label>
+                                <input type="text" id="authRegUser" placeholder="Usuario" required autocomplete="off">
                             </div>
                             <div class="checkout-field">
                                 <label for="authRegEmail">Correo Electrónico</label>
@@ -82,8 +82,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="profile-content">
                             <h2>Mi Perfil</h2>
                             <div class="profile-details">
-                                <div class="profile-avatar-circle">👤</div>
-                                <p><strong>Usuario:</strong> <span id="profileUserVal">Cliente</span></p>
+                                <!-- Avatar con hover para cambiar foto -->
+                                <div class="profile-avatar-circle" id="profileAvatarCircle" title="Cambiar foto de perfil" style="cursor:pointer;position:relative;">
+                                    <span class="profile-avatar-overlay">📷<br><small>Cambiar foto</small></span>
+                                    <input type="file" id="profileAvatarInput" accept="image/*" style="display:none;">
+                                    <span id="profileAvatarEmoji">👤</span>
+                                </div>
+                                <p><strong>Usuario:</strong>
+                                    <span id="profileUserVal">Cliente</span>
+                                    <button id="btn-edit-username" title="Editar nombre de usuario" style="background:none;border:none;cursor:pointer;font-size:15px;vertical-align:middle;margin-left:6px;">✏️</button>
+                                </p>
                                 <p><strong>Correo:</strong> <span id="profileEmailVal">correo@ejemplo.com</span></p>
                             </div>
                             <hr class="ticket-hr">
@@ -308,20 +316,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Auto-logout any previous different session
+                    const prevEmail = localStorage.getItem("userEmail");
+                    if (prevEmail && prevEmail !== data.user.email) {
+                        // Different account - silently clear previous
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("username");
+                    }
+
                     localStorage.setItem("userEmail", data.user.email);
                     localStorage.setItem("username", data.user.username);
                     localStorage.setItem("token", data.token);
 
-                    alert(`¡Bienvenido de vuelta, ${data.user.username}!`);
+                    // Load avatar keyed to this account's email
+                    const accountAvatarKey = "avatar_" + data.user.email;
+                    const savedAvatar = localStorage.getItem(accountAvatarKey);
+                    actualizarAvatarUI(savedAvatar || null);
+
+                    sessionStorage.removeItem("switching_account");
+
                     formLogin.reset();
                     modalAuth.classList.remove("activo");
 
-                    // Si el checkout de carrito.js está activo, rellenar el email de facturación
+                    // If the checkout email field exists, auto-fill
                     const checkoutEmail = document.getElementById("checkoutEmail");
                     if (checkoutEmail) {
                         checkoutEmail.value = data.user.email;
                         checkoutEmail.readOnly = true;
                     }
+
+                    alert(`¡Bienvenido de vuelta, ${data.user.username}!`);
                 } else {
                     loginIntentos++;
                     if (loginIntentos >= 3) {
@@ -392,6 +416,8 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.removeItem("token");
             localStorage.removeItem("userEmail");
             localStorage.removeItem("username");
+            // DO NOT remove avatar - it stays keyed to the email for next time
+            actualizarAvatarUI(null);
 
             const checkoutEmail = document.getElementById("checkoutEmail");
             if (checkoutEmail) {
@@ -404,13 +430,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Cambiar de Cuenta
+    // Cambiar de Cuenta - opens login modal; auto-logout happens when new login succeeds
     if (btnSwitchAccount) {
         btnSwitchAccount.addEventListener("click", () => {
-            // Limpia sesión anterior
+            // Mark that we are switching accounts (not fully logging out)
+            sessionStorage.setItem("switching_account", "1");
+
+            // Clear current session tokens
             localStorage.removeItem("token");
             localStorage.removeItem("userEmail");
             localStorage.removeItem("username");
+            actualizarAvatarUI(null);
 
             const checkoutEmail = document.getElementById("checkoutEmail");
             if (checkoutEmail) {
@@ -419,6 +449,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             modalProfile.classList.remove("activo");
+            // Switch to login tab and open auth modal
+            if (tabLogin) {
+                tabLogin.click();
+            }
             modalAuth.classList.add("activo");
         });
     }
@@ -480,4 +514,131 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target === modalProfile) modalProfile.classList.remove("activo");
         if (e.target === modalCP) modalCP.classList.remove("activo");
     });
+
+    // ============================================================
+    // GENERADOR DE NOMBRES DE USUARIO ALEATORIOS
+    // ============================================================
+    function generarUsernameAleatorio() {
+        const adjetivos = ["Galaxy", "Cosmic", "Shadow", "Diamond", "Neon", "Epic", "Ultra", "Stealth", "Hyper", "Flash", "Storm", "Blaze", "Night"];
+        const sustantivos = ["Hat", "Guy", "Pro", "King", "Wolf", "Rider", "Boss", "Star", "Fox", "Ace", "Hunter", "Ghost"];
+        const adj = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+        const sust = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+        const num = Math.floor(10 + Math.random() * 90);
+        return `${adj}${sust}${num}`;
+    }
+
+    // Auto-fill random username when switching to Register tab
+    if (tabRegister) {
+        tabRegister.addEventListener("click", () => {
+            const userInput = document.getElementById("authRegUser");
+            if (userInput && !userInput.value.trim()) {
+                userInput.value = generarUsernameAleatorio();
+            }
+        });
+    }
+
+    // ============================================================
+    // EDITAR NOMBRE DE USUARIO CON LÁPIZ (✏️)
+    // ============================================================
+    const btnEditUsername = document.getElementById("btn-edit-username");
+    if (btnEditUsername) {
+        btnEditUsername.addEventListener("click", async () => {
+            const currentName = localStorage.getItem("username") || "";
+            const newName = prompt("Introduce tu nuevo nombre de usuario:", currentName);
+            if (!newName || newName.trim() === "" || newName.trim() === currentName) return;
+
+            const cleanName = newName.trim().substring(0, 30);
+            const token = localStorage.getItem("token");
+            const email = localStorage.getItem("userEmail");
+
+            try {
+                const res = await fetch("http://localhost:3000/api/auth/update-username", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, newUsername: cleanName, token })
+                });
+                if (res.ok) {
+                    localStorage.setItem("username", cleanName);
+                    const profileUserVal = document.getElementById("profileUserVal");
+                    if (profileUserVal) profileUserVal.textContent = cleanName;
+                    alert("¡Nombre de usuario actualizado!");
+                } else {
+                    // If backend doesn't have the endpoint yet, just update locally
+                    localStorage.setItem("username", cleanName);
+                    const profileUserVal = document.getElementById("profileUserVal");
+                    if (profileUserVal) profileUserVal.textContent = cleanName;
+                    alert("¡Nombre de usuario actualizado localmente!");
+                }
+            } catch (e) {
+                // Offline fallback
+                localStorage.setItem("username", cleanName);
+                const profileUserVal = document.getElementById("profileUserVal");
+                if (profileUserVal) profileUserVal.textContent = cleanName;
+                alert("¡Nombre de usuario actualizado!");
+            }
+        });
+    }
+
+    // ============================================================
+    // HELPER: actualizarAvatarUI - updates the header avatar button
+    // ============================================================
+    function actualizarAvatarUI(base64) {
+        const btn = document.getElementById("btn-perfil-usuario");
+        if (!btn) return;
+        if (base64) {
+            btn.innerHTML = `<img src="${base64}" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid #cca142;vertical-align:middle;">`;
+        } else {
+            btn.innerHTML = "👤";
+        }
+    }
+    window.actualizarAvatarUI = actualizarAvatarUI;
+
+    // ============================================================
+    // AVATAR - CLICK PARA SUBIR FOTO, HOVER "CAMBIAR FOTO"
+    // ============================================================
+    const avatarCircle = document.getElementById("profileAvatarCircle");
+    const avatarInput = document.getElementById("profileAvatarInput");
+    const avatarEmoji = document.getElementById("profileAvatarEmoji");
+
+    if (avatarCircle && avatarInput) {
+        avatarCircle.addEventListener("click", () => {
+            avatarInput.click();
+        });
+
+        avatarInput.addEventListener("change", () => {
+            const file = avatarInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const base64 = ev.target.result;
+                // Save keyed to current account email
+                const email = localStorage.getItem("userEmail");
+                if (email) {
+                    localStorage.setItem("avatar_" + email, base64);
+                }
+                actualizarAvatarUI(base64);
+                // Update avatar inside profile modal immediately
+                if (avatarEmoji) {
+                    avatarEmoji.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Refresh avatar display whenever profile modal is opened
+    if (btnPerfilUsuario) {
+        btnPerfilUsuario.addEventListener("click", () => {
+            const email = localStorage.getItem("userEmail");
+            const savedAvatar = email ? localStorage.getItem("avatar_" + email) : null;
+            if (avatarEmoji) {
+                if (savedAvatar) {
+                    avatarEmoji.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                } else {
+                    avatarEmoji.innerHTML = "👤";
+                }
+            }
+        }, true); // capture phase so it runs before modal toggle
+    }
+
 });
