@@ -641,4 +641,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }, true); // capture phase so it runs before modal toggle
     }
 
+    // Initialize Header Avatar on page load
+    const userEmailOnLoad = localStorage.getItem("userEmail");
+    const tokenOnLoad = localStorage.getItem("token");
+    if (tokenOnLoad && userEmailOnLoad) {
+        const savedAvatar = localStorage.getItem("avatar_" + userEmailOnLoad);
+        if (savedAvatar) {
+            actualizarAvatarUI(savedAvatar);
+        } else {
+            actualizarAvatarUI(null);
+        }
+    }
+
 });

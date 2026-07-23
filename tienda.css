@@ -873,15 +873,38 @@ body {
     height: 30vh;
     position: relative;
     background-color: #161616;
-    /* Clean solid dark background style */
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     text-align: center;
     border-bottom: 3px solid rgba(204, 161, 66, 0.6);
-    animation: gold-led-pulse 4s infinite ease-in-out;
     overflow: hidden;
+}
+
+.contacto-hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.contacto-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.contacto-hero-text {
+    position: relative;
+    z-index: 2;
 }
 
 .contacto-hero-text h1 {

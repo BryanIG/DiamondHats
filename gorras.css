@@ -998,11 +998,13 @@ main {
 /* 3. Secciones del Banner de Video Intermedio */
 .video-seccion-banner {
     position: relative;
-    width: 100%;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
     height: 320px;
-    margin: 40px auto;
+    margin-top: 40px;
+    margin-bottom: 40px;
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
