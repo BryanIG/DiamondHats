@@ -48,6 +48,22 @@
     </header>
 
     <main>
+        <section class="ofertas-hero"
+            style="position: relative; width: 100%; height: 55vh; overflow: hidden; margin-bottom: 30px;">
+            <video class="ofertas-hero-video" autoPlay loop muted playsInline
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
+                <source src="Imagenes page/videoofertas.mp4" type="video/mp4">
+            </video>
+            <div class="ofertas-hero-overlay"
+                style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1;">
+            </div>
+            <div class="ofertas-hero-text"
+                style="position:relative; z-index:2; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#fff;">
+                <h1 style="font-size: 3rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.5);">Ofertas Especiales</h1>
+                <p>Descubre los descuentos más exclusivos</p>
+            </div>
+        </section>
+
         <!-- Contenedor dinámico por secciones (Se llenará solo con ofertas) -->
         <div id="contenedor-productos"></div>
 

@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Ajustar el icono inicial según el tema cargado
         const isDark = document.body.classList.contains("dark-mode");
-        themeBtn.innerHTML = isDark ? "☀️" : "🌙";
+        themeBtn.innerHTML = isDark ? "🌙" : "☀️";
 
         // Lo colocamos a la izquierda del botón de perfil
         iconsContainer.insertBefore(themeBtn, iconsContainer.firstChild);
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.classList.toggle("dark-mode");
             const nowDark = document.body.classList.contains("dark-mode");
             localStorage.setItem("diamond_theme", nowDark ? "dark" : "light");
-            themeBtn.innerHTML = nowDark ? "☀️" : "🌙";
+            themeBtn.innerHTML = nowDark ? "🌙" : "☀️";
         });
     }
 
@@ -146,8 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="profile-actions">
                                 <button id="btn-show-change-pass" class="profile-action-btn">Cambiar Contraseña</button>
                                 <button id="btn-switch-account" class="profile-action-btn sec">Cambiar de Cuenta</button>
-                                <button id="btn-logout" class="profile-action-btn danger">Cerrar Sesión</button>
                             </div>
+                            <div style="flex: 1;"></div>
+                            <button id="btn-logout" class="profile-action-btn danger btn-logout-bottom">Cerrar Sesión</button>
                         </div>
                     </div>
                 </div>
