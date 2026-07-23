@@ -658,7 +658,7 @@ function generarPDFTicket() {
 </head>
 <body>
   <div class="header">
-    <h1>💎 DIAMOND HATS</h1>
+    <h1>DIAMOND HATS</h1>
     <p>Estilo con actitud y distinción</p>
   </div>
   <div class="meta">
@@ -683,7 +683,7 @@ function generarPDFTicket() {
 
   <div class="stamp-qr">
     <div class="stamp">
-      <div class="diamond">💎</div>
+      <div class="diamond"></div>
       <div>DIAMOND<br>HATS</div>
       <div style="font-size:8px;margin-top:4px;color:#888;">TIKET VERIFICADO</div>
     </div>

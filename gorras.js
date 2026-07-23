@@ -12,6 +12,32 @@ const categorias = {
 // ==========================================
 const productos = [
     {
+        nombre: "Phantom Black Edition",
+        descripcion: "Gorra ultra negra mate estilo Phantom Black, elegancia pura.",
+        precio: 850,
+        enOferta: false,
+        imagen: "Gorra1.jpeg",
+        categoria: "originales"
+    },
+    {
+        nombre: "Obsidian Black",
+        descripcion: "Minimalista. Modelo Black Collection de tela premium eco-friendly.",
+        precio: 720,
+        enOferta: false,
+        imagen: "Gorra2.jpeg",
+        categoria: "originales"
+    },
+    {
+        nombre: "Shadow Black",
+        descripcion: "Edición Limitada Black Panther Shadow. Oscuridad absoluta.",
+        precio: 499,
+        precioOriginal: 890,
+        descuento: 45,
+        enOferta: true,
+        imagen: "Gorra9.jpeg",
+        categoria: "temporada"
+    },
+    {
         nombre: "Negra y Blanca",
         descripcion: "Diseño moderno para cualquier ocasión.",
         precio: 489,
@@ -353,20 +379,34 @@ function renderizarCatalogo(listaAImprimir) {
 }
 
 // ==========================================
-// LOGICA DE BUSCADOR EN TIEMPO REAL
+// LOGICA DE NUEVO BUSCADOR (FILTROS RÁPIDOS)
 // ==========================================
 function inicializarBuscador() {
-    const inputBuscador = document.getElementById("buscador-gorras");
-    if (inputBuscador) {
-        inputBuscador.addEventListener("input", (e) => {
-            const busqueda = e.target.value.toLowerCase().trim();
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    if (filterBtns.length > 0) {
+        filterBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // Quitar estilo activo de todos
+                filterBtns.forEach(b => b.classList.remove("active"));
+                // Agregar activo al seleccionado
+                btn.classList.add("active");
 
-            const productosFiltrados = productos.filter(producto =>
-                producto.nombre.toLowerCase().includes(busqueda) ||
-                producto.descripcion.toLowerCase().includes(busqueda)
-            );
+                const filtro = btn.getAttribute("data-filter").toLowerCase();
 
-            renderizarCatalogo(productosFiltrados);
+                if (filtro === "all") {
+                    renderizarCatalogo(productos);
+                    return;
+                }
+
+                // Filtrar por término
+                const productosFiltrados = productos.filter(producto =>
+                    producto.nombre.toLowerCase().includes(filtro) ||
+                    producto.descripcion.toLowerCase().includes(filtro) ||
+                    producto.categoria.toLowerCase().includes(filtro)
+                );
+
+                renderizarCatalogo(productosFiltrados);
+            });
         });
     }
 }

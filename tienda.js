@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("modal-user-profile")) {
             const profileHTML = `
                 <div id="modal-user-profile" class="modal-overlay">
-                    <div class="modal-container profile-modal-container">
+                    <div class="profile-modal-container">
                         <button id="cerrar-profile" class="modal-cerrar-btn">✖</button>
                         <div class="profile-content">
                             <h2>Mi Perfil</h2>
