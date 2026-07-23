@@ -566,6 +566,12 @@ if (formCheckout) {
                 </div>
             `;
 
+            // Obtener dirección del usuario (si está registrado)
+            const userCalle = localStorage.getItem("userCalle") || "No registrada";
+            const userNumExt = localStorage.getItem("userNumExt") || "";
+            const userColonia = localStorage.getItem("userColonia") || "";
+            const direccionCompleta = userCalle !== "No registrada" ? `${userCalle} ${userNumExt}, Col. ${userColonia}` : "Recoger en sucursal / No registrada";
+
             // Store ticket data for PDF generation
             window._ticketData = {
                 ticketId,
@@ -575,6 +581,7 @@ if (formCheckout) {
                 rawCard,
                 itemsHtml,
                 totalVal,
+                direccionCompleta,
                 date: new Date().toLocaleString()
             };
         }
@@ -617,8 +624,9 @@ function generarPDFTicket() {
     const d = window._ticketData;
     if (!d) { alert("No hay datos de ticket disponibles."); return; }
 
-    // QR code URL: encodes the ticket ID so scanning shows "DIAMOND HATS | Ticket: DH-XXXXXX-MX"
-    const qrContent = encodeURIComponent(`DIAMOND HATS | Ticket: ${d.ticketId} | Total: $${d.totalVal} MXN | Cliente: ${d.activeUser}`);
+    // QR code URL: points to a URL that would trigger a download/view of the ticket pseudo-endpoint
+    const downloadUrl = window.location.origin + `/descargar-ticket.html?id=${d.ticketId}`;
+    const qrContent = encodeURIComponent(downloadUrl);
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrContent}`;
 
     const html = `<!DOCTYPE html>
@@ -663,6 +671,7 @@ function generarPDFTicket() {
   <div class="info-row"><span>Correo</span><span>${d.emailFacturacion}</span></div>
   <div class="info-row"><span>Titular de Tarjeta</span><span>${d.cardHolder}</span></div>
   <div class="info-row"><span>Tarjeta</span><span>**** **** **** ${d.rawCard.substring(12)}</span></div>
+  <div class="info-row"><span>Dirección de Envío</span><span style="font-size:12px;text-align:right;">${d.direccionCompleta}</span></div>
 
   <div class="section-title">Productos</div>
   ${d.itemsHtml.replace(/ticket-item-row/g, 'info-row')}

@@ -1,5 +1,13 @@
 console.log("Diamond Hats - Control de Cuentas y Navegación");
 
+// Aplicar tema inmediatamente para evitar parpadeo (FOUC)
+(function () {
+    const savedTheme = localStorage.getItem("diamond_theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+    }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Control del menú hamburguesa móvil existente
     const menuBtn = document.querySelector(".menu-btn");
@@ -21,6 +29,29 @@ document.addEventListener("DOMContentLoaded", () => {
         profileBtn.innerHTML = "👤";
         // Prependemos para colocarlo al lado izquierdo del carrito
         iconsContainer.insertBefore(profileBtn, iconsContainer.firstChild);
+    }
+
+    // Inyección dinámica del botón de Tema (Modo Claro/Oscuro)
+    if (iconsContainer && !document.getElementById("btn-tema-toggle")) {
+        const themeBtn = document.createElement("button");
+        themeBtn.id = "btn-tema-toggle";
+        themeBtn.className = "theme-toggle-btn";
+        themeBtn.title = "Cambiar Tema";
+
+        // Ajustar el icono inicial según el tema cargado
+        const isDark = document.body.classList.contains("dark-mode");
+        themeBtn.innerHTML = isDark ? "☀️" : "🌙";
+
+        // Lo colocamos a la izquierda del botón de perfil
+        iconsContainer.insertBefore(themeBtn, iconsContainer.firstChild);
+
+        // Lógica de toggle
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const nowDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("diamond_theme", nowDark ? "dark" : "light");
+            themeBtn.innerHTML = nowDark ? "☀️" : "🌙";
+        });
     }
 
     // 3. Inyección dinámica de modales en el Body
@@ -58,6 +89,23 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <label for="authRegEmail">Correo Electrónico</label>
                                 <input type="email" id="authRegEmail" placeholder="Correo" required>
                             </div>
+                            
+                            <!-- NUEVOS CAMPOS DE DIRECCIÓN -->
+                            <div class="checkout-field">
+                                <label for="authRegCalle">Nombre de la calle</label>
+                                <input type="text" id="authRegCalle" placeholder="Ej. Av. Insurgentes Sur" required>
+                            </div>
+                            <div class="checkout-row" style="display:flex; gap:10px;">
+                                <div class="checkout-field half" style="flex:1;">
+                                    <label for="authRegNumExt">Num Exterior</label>
+                                    <input type="text" id="authRegNumExt" placeholder="Ej. 123" required>
+                                </div>
+                                <div class="checkout-field half" style="flex:1;">
+                                    <label for="authRegColonia">Colonia</label>
+                                    <input type="text" id="authRegColonia" placeholder="Ej. Roma Norte" required>
+                                </div>
+                            </div>
+                            
                             <div class="checkout-field">
                                 <label for="authRegPass">Contraseña</label>
                                 <input type="password" id="authRegPass" placeholder="Contraseña" required>
@@ -326,6 +374,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     localStorage.setItem("userEmail", data.user.email);
                     localStorage.setItem("username", data.user.username);
+
+                    // Save address locally if returned from backend
+                    if (data.user.calle) {
+                        localStorage.setItem("userCalle", data.user.calle);
+                        localStorage.setItem("userNumExt", data.user.numExt || "");
+                        localStorage.setItem("userColonia", data.user.colonia || "");
+                    }
+
                     localStorage.setItem("token", data.token);
 
                     // Load avatar keyed to this account's email
@@ -368,6 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const username = sanitizar(document.getElementById("authRegUser").value);
             const email = sanitizar(document.getElementById("authRegEmail").value);
+            const calle = sanitizar(document.getElementById("authRegCalle").value);
+            const numExt = sanitizar(document.getElementById("authRegNumExt").value);
+            const colonia = sanitizar(document.getElementById("authRegColonia").value);
             const password = sanitizar(inputRegPass.value);
 
             // Validar fuerza
@@ -386,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const response = await fetch("http://localhost:3000/api/auth/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({ username, email, password, calle, numExt, colonia })
                 });
 
                 const data = await response.json();
@@ -433,26 +492,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cambiar de Cuenta - opens login modal; auto-logout happens when new login succeeds
     if (btnSwitchAccount) {
         btnSwitchAccount.addEventListener("click", () => {
-            // Mark that we are switching accounts (not fully logging out)
-            sessionStorage.setItem("switching_account", "1");
-
-            // Clear current session tokens
-            localStorage.removeItem("token");
-            localStorage.removeItem("userEmail");
-            localStorage.removeItem("username");
-            actualizarAvatarUI(null);
-
-            const checkoutEmail = document.getElementById("checkoutEmail");
-            if (checkoutEmail) {
-                checkoutEmail.value = "";
-                checkoutEmail.readOnly = false;
-            }
-
+            // Solo abrimos el login, no cerramos sesión actual hasta que se logueen.
             modalProfile.classList.remove("activo");
-            // Switch to login tab and open auth modal
-            if (tabLogin) {
-                tabLogin.click();
-            }
             modalAuth.classList.add("activo");
         });
     }
@@ -652,5 +693,4 @@ document.addEventListener("DOMContentLoaded", () => {
             actualizarAvatarUI(null);
         }
     }
-
 });

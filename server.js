@@ -21,6 +21,9 @@ const UserSchema = new mongoose.Schema({
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    calle: { type: String, required: false },
+    numExt: { type: String, required: false },
+    colonia: { type: String, required: false },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -31,11 +34,11 @@ const User = mongoose.model('User', UserSchema);
 // 1. REGISTRO
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, calle, numExt, colonia } = req.body;
 
         // Validaciones básicas de backend
         if (!username || !email || !password) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+            return res.status(400).json({ error: 'Todos los campos básicos son obligatorios.' });
         }
 
         // Validar si el usuario ya existe
@@ -52,7 +55,10 @@ app.post('/api/auth/register', async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            calle,
+            numExt,
+            colonia
         });
 
         await newUser.save();
@@ -88,10 +94,14 @@ app.post('/api/auth/login', async (req, res) => {
         res.json({
             message: 'Inicio de sesión exitoso.',
             user: {
+                id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                calle: user.calle,
+                numExt: user.numExt,
+                colonia: user.colonia
             },
-            token: 'mock-jwt-token-for-diamond-hats'
+            token: 'fake-jwt-token'
         });
     } catch (err) {
         console.error(err);
