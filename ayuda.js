@@ -120,64 +120,95 @@ document.addEventListener("DOMContentLoaded", () => {
 // GLOBAL FUNC PARA RECUPERAR TICKET
 window.descargarTicket = function (index) {
     const historial = JSON.parse(localStorage.getItem("historial_compras") || "[]");
-    const t = historial[index];
-    if (!t) return;
+    const d = historial[index];
+    if (!d) {
+        alert("No hay datos de ticket disponibles.");
+        return;
+    }
 
-    const hiddenContainer = document.getElementById("hidden-pdf-render");
+    const downloadUrl = window.location.origin + `/descargar-ticket.html?id=${d.ticketId}`;
+    const qrContent = encodeURIComponent(downloadUrl);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrContent}`;
 
-    // Remasterizamos el layout del ticket tal cual como en carrito.js
-    const d = new Date(t.date);
-    const dateFormatted = d.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket Diamond Hats - ${d.ticketId}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #111; padding: 40px; max-width: 620px; margin: 0 auto; }
+    .header { text-align: center; border-bottom: 2px solid #cca142; padding-bottom: 18px; margin-bottom: 20px; }
+    .header h1 { font-size: 26px; letter-spacing: 3px; color: #111; }
+    .header p { color: #888; font-size: 13px; margin-top: 4px; }
+    .meta { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 18px; }
+    .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin: 14px 0 6px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px dashed #eee; }
+    .info-row:last-child { border-bottom: none; }
+    .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; padding: 12px 0 0; border-top: 2px solid #cca142; margin-top: 10px; }
+    .stamp-qr { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+    .stamp { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #cca142; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #cca142; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 10px; opacity: 0.8; transform: rotate(-5deg); }
+    .stamp .diamond { font-size: 22px; margin-bottom: 4px; }
+    .qr-block { text-align: center; }
+    .qr-block img { width: 120px; height: 120px; border: 1px solid #ddd; border-radius: 6px; }
+    .qr-block p { font-size: 10px; color: #999; margin-top: 5px; }
+    .footer { text-align: center; font-size: 11px; color: #bbb; margin-top: 28px; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>DIAMOND HATS</h1>
+    <p>Estilo con actitud y distinción</p>
+  </div>
+  <div class="meta">
+    <span><strong>Ticket ID:</strong> ${d.ticketId}</span>
+    <span><strong>Fecha:</strong> ${d.date}</span>
+  </div>
 
-    hiddenContainer.innerHTML = `
-        <div id="pdf-reprint-content" style="padding: 40px; background: #fff; color: #111; font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h1 style="font-size: 28px; margin-bottom: 5px; color: #000; font-family: Times New Roman, serif;">DIAMOND HATS</h1>
-                <p style="margin: 0; font-size: 14px; color: #555;">RECIBO DE COMPRA (Oficial)</p>
-            </div>
-            
-            <div style="margin-bottom: 20px; font-size: 14px; line-height: 1.6; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
-                <p><strong>Folio:</strong> ${t.ticketId}</p>
-                <p><strong>Fecha y Hora:</strong> ${dateFormatted}</p>
-                <p><strong>Cliente:</strong> ${t.activeUser} (${t.emailFacturacion})</p>
-                <p><strong>Dirección:</strong> ${t.direccionCompleta}</p>
-            </div>
+  <div class="section-title">Datos del Cliente</div>
+  <div class="info-row"><span>Usuario</span><span>${d.activeUser || 'Cliente'}</span></div>
+  <div class="info-row"><span>Correo</span><span>${d.emailFacturacion || '-'}</span></div>
+  <div class="info-row"><span>Titular de Tarjeta</span><span>${d.cardHolder || '-'}</span></div>
+  <div class="info-row"><span>Tarjeta</span><span>**** **** **** ${d.rawCard ? d.rawCard.substring(12) : '----'}</span></div>
+  <div class="info-row"><span>Dirección de Envío</span><span style="font-size:12px;text-align:right;">${d.direccionCompleta || '-'}</span></div>
 
-            <div style="margin-bottom: 20px; font-size: 14px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
-                <p><strong>Titular de Tarjeta:</strong> ${t.cardHolder}</p>
-                <p><strong>Método de Pago:</strong> Tarjeta Termina en *${t.rawCard.substring(12)}</p>
-            </div>
+  <div class="section-title">Productos</div>
+  ${d.itemsHtml ? d.itemsHtml.replace(/ticket-item-row/g, 'info-row') : ''}
 
-            <div style="margin-bottom: 30px; font-size: 14px;">
-                ${t.itemsHtml}
-            </div>
+  <div class="total-row">
+    <span>Total Pagado</span>
+    <span>$${d.totalVal || '0.00'} MXN</span>
+  </div>
 
-            <div style="font-size: 18px; text-align: right; margin-bottom: 40px; border-top: 2px solid #ccc; padding-top: 15px;">
-                <span>Total Pagado:</span>
-                <strong>$${t.totalVal} MXN</strong>
-            </div>
+  <div class="stamp-qr">
+    <div class="stamp">
+      <div class="diamond">💎</div>
+      <div>DIAMOND<br>HATS</div>
+      <div style="font-size:8px;margin-top:4px;color:#888;">COPIA DE OFICINA</div>
+    </div>
+    <div class="qr-block">
+      <img src="${qrUrl}" alt="QR Ticket">
+      <p>Escanea para verificar tu compra</p>
+    </div>
+  </div>
 
-            <div style="text-align: center; margin-top: 40px;">
-                <div style="display: inline-block; padding: 15px 30px; border: 3px double #000; transform: rotate(-3deg); font-weight: bold; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; color: #000; font-size: 16px;">
-                    COPIA - PAGADO
-                </div>
-            </div>
-        </div>
-    `;
+  <div class="footer">
+    © 2026 Diamond Hats · Copia del Historial
+  </div>
 
-    hiddenContainer.style.display = "block";
-    const elementToPDF = document.getElementById("pdf-reprint-content");
+  <script>
+    window.onload = function() { setTimeout(function(){ window.print(); }, 400); };
+  </script>
+</body>
+</html>`;
 
-    const opt = {
-        margin: 0.5,
-        filename: `DiamondHats_Recuperado_${t.ticketId}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(elementToPDF).save().then(() => {
-        hiddenContainer.style.display = "none";
-        hiddenContainer.innerHTML = '';
-    });
+    const popup = window.open("", "_blank", "width=680,height=920,scrollbars=yes");
+    if (popup) {
+        popup.document.write(html);
+        popup.document.close();
+    } else {
+        alert("El navegador bloqueó la ventana emergente del Ticket. Habilita los popups.");
+    }
 };

@@ -1339,6 +1339,7 @@ body {
     border-radius: 0;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 #modal-user-profile.activo .profile-modal-container {
@@ -1368,18 +1369,20 @@ body {
 }
 
 .profile-avatar-circle {
-    font-size: 40px;
-    width: 75px;
-    height: 75px;
+    font-size: 60px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     border: 3px solid #cca142;
     display: flex;
-    align-items: center;
     justify-content: center;
-    background-color: #f7f7f7;
+    align-items: center;
+    margin: 0 auto 15px;
+    overflow: hidden;
+    color: #cca142;
+    background: transparent;
     box-shadow: 0 0 15px rgba(204, 161, 66, 0.15);
     position: relative;
-    overflow: hidden;
     cursor: pointer;
 }
 
@@ -1545,16 +1548,18 @@ body.dark-mode .ayuda-card {
 
 .timeline-line {
     position: relative;
-    height: 4px;
-    background: #e0e0e0;
-    border-radius: 4px;
-    margin: 40px 10px;
+    height: 6px;
+    background: rgba(204, 161, 66, 0.2);
+    border-radius: 50px;
+    margin: 50px 10px;
     display: flex;
     justify-content: space-between;
+    box-shadow: 0 0 8px rgba(204, 161, 66, 0.3), inset 0 0 6px rgba(204, 161, 66, 0.1);
 }
 
 body.dark-mode .timeline-line {
-    background: #444;
+    background: rgba(204, 161, 66, 0.15);
+    box-shadow: 0 0 12px rgba(204, 161, 66, 0.4), inset 0 0 8px rgba(204, 161, 66, 0.15);
 }
 
 .timeline-fill {
@@ -1562,10 +1567,22 @@ body.dark-mode .timeline-line {
     top: 0;
     left: 0;
     height: 100%;
-    background: #cca142;
-    box-shadow: 0 0 10px #cca142, 0 0 20px #cca142;
-    transition: width 0.5s ease;
-    border-radius: 4px;
+    background: linear-gradient(90deg, #a67c00, #f5d020, #ffc107, #f5d020);
+    background-size: 200% 100%;
+    animation: ledShimmer 2s linear infinite;
+    box-shadow: 0 0 10px #f5d020, 0 0 20px #f5d020, 0 0 35px rgba(245, 208, 32, 0.7);
+    transition: width 0.8s ease;
+    border-radius: 50px;
+}
+
+@keyframes ledShimmer {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
 }
 
 .timeline-step {
@@ -1586,10 +1603,10 @@ body.dark-mode .timeline-step {
 }
 
 .timeline-step.active {
-    background: #cca142;
-    border-color: #cca142;
-    box-shadow: 0 0 10px #cca142, 0 0 25px rgba(204, 161, 66, 0.8);
-    animation: neonPulse 1.5s infinite alternate;
+    background: #f5d020;
+    border-color: #f5d020;
+    box-shadow: 0 0 10px #f5d020, 0 0 25px #f5d020, 0 0 40px rgba(245, 208, 32, 0.6);
+    animation: neonPulse 1.2s ease-in-out infinite;
 }
 
 .timeline-step.completed {
@@ -1616,13 +1633,18 @@ body.dark-mode .timeline-step {
 
 @keyframes neonPulse {
     0% {
-        box-shadow: 0 0 5px #cca142, 0 0 10px #cca142;
+        box-shadow: 0 0 6px #f5d020, 0 0 12px #f5d020, 0 0 20px #f5d020;
         transform: scale(1);
     }
 
+    50% {
+        box-shadow: 0 0 15px #f5d020, 0 0 30px #f5d020, 0 0 50px #f5d020, 0 0 70px rgba(245, 208, 32, 0.5);
+        transform: scale(1.4);
+    }
+
     100% {
-        box-shadow: 0 0 15px #cca142, 0 0 30px #cca142;
-        transform: scale(1.3);
+        box-shadow: 0 0 6px #f5d020, 0 0 12px #f5d020, 0 0 20px #f5d020;
+        transform: scale(1);
     }
 }
 
@@ -1811,9 +1833,9 @@ body.dark-mode .history-table td {
     }
 
     .profile-avatar-circle {
-        width: 65px;
-        height: 65px;
-        font-size: 32px;
+        width: 100px;
+        height: 100px;
+        font-size: 48px;
     }
 
     /* Footer Cohesion */
@@ -2357,4 +2379,297 @@ body.dark-mode .contacto-tagline {
 
 body.light-mode .header-container .logo h1 {
     color: #111;
+}
+
+/* ==========================================
+   AYUDA WELCOME HEADING COLOR
+   ========================================== */
+.ayuda-welcome {
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    color: #111;
+}
+
+body.dark-mode .ayuda-welcome {
+    color: #e8e8e8;
+}
+
+/* ==========================================
+   FLIP CARD - PAYMENT SYSTEM (Uiverse by Praashoo7)
+   ========================================== */
+.payment-cards-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    justify-content: flex-start;
+}
+
+.payment-card-option {
+    cursor: pointer;
+    border: 3px solid transparent;
+    border-radius: 1.2rem;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.payment-card-option.selected {
+    border-color: #f5d020;
+    transform: translateY(-6px);
+    box-shadow: 0 0 22px rgba(245, 208, 32, 0.55);
+}
+
+/* Base flip card */
+.flip-card {
+    background-color: transparent;
+    width: 290px;
+    height: 186px;
+    font-size: 19px;
+    /* Scales inner em items */
+    perspective: 1000px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner,
+.flip-card-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    box-shadow: 0 8px 14px 0 rgba(0, 0, 0, 0.2);
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 1rem;
+}
+
+.flip-card-front {
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 2px,
+        rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
+        rgba(0, 0, 0, 0.2) 0px -1px 0px inset;
+    background-color: #171717;
+}
+
+.flip-card-back {
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 2px,
+        rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
+        rgba(0, 0, 0, 0.2) 0px -1px 0px inset;
+    background-color: #171717;
+    transform: rotateY(180deg);
+}
+
+/* Color Variants */
+.flip-card.card-gold .flip-card-front,
+.flip-card.card-gold .flip-card-back {
+    background: linear-gradient(135deg, #1a1200, #3a2a00, #1a1200);
+    border: 1px solid rgba(204, 161, 66, 0.7);
+}
+
+.flip-card.card-blue .flip-card-front,
+.flip-card.card-blue .flip-card-back {
+    background: linear-gradient(135deg, #0a0e2e, #1a237e, #0a0e2e);
+    border: 1px solid rgba(100, 150, 255, 0.5);
+}
+
+.flip-card.card-dark .flip-card-front,
+.flip-card.card-dark .flip-card-back {
+    background: linear-gradient(135deg, #111, #2a2a2a, #111);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.flip-card.card-red .flip-card-front,
+.flip-card.card-red .flip-card-back {
+    background: linear-gradient(135deg, #150000, #5c0000, #150000);
+    border: 1px solid rgba(255, 50, 50, 0.4);
+}
+
+.flip-card.card-green .flip-card-front,
+.flip-card.card-green .flip-card-back {
+    background: linear-gradient(135deg, #001500, #004515, #001500);
+    border: 1px solid rgba(50, 255, 100, 0.4);
+}
+
+/* ---- EXACT Original element positions (Praashoo7) ---- */
+.heading_8264 {
+    position: absolute;
+    letter-spacing: .2em;
+    font-size: 0.5em;
+    top: 2.2em;
+    left: 17.6em;
+}
+
+/* .logo is the Mastercard SVG */
+.flip-card .logo {
+    position: absolute;
+    top: 6em;
+    left: 11em;
+    width: 2.5em;
+    height: 2.5em;
+}
+
+.chip {
+    position: absolute;
+    top: 2.3em;
+    left: 1.5em;
+    width: 2.2em;
+    height: 2.2em;
+}
+
+.contactless {
+    position: absolute;
+    top: 3.5em;
+    left: 12.4em;
+    width: 1.3em;
+    height: 1.3em;
+}
+
+/* Live-preview card classes */
+.card-number-display {
+    position: absolute;
+    font-weight: bold;
+    font-size: .65em;
+    top: 9em;
+    left: 1.4em;
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.card-holder-display {
+    position: absolute;
+    font-weight: bold;
+    font-size: 0.55em;
+    top: 15.5em;
+    left: 1.6em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Back face */
+.strip {
+    position: absolute;
+    background-color: black;
+    width: 100%;
+    height: 1.5em;
+    top: 2.4em;
+    background: repeating-linear-gradient(45deg,
+            #303030,
+            #303030 10px,
+            #202020 10px,
+            #202020 20px);
+}
+
+.mstrip {
+    position: absolute;
+    background-color: rgb(255, 255, 255);
+    width: 8em;
+    height: 0.8em;
+    top: 5.5em;
+    left: 1em;
+    border-radius: 2.5px;
+}
+
+.sstrip {
+    position: absolute;
+    background-color: rgb(255, 255, 255);
+    width: 4.1em;
+    height: 0.8em;
+    top: 5.5em;
+    left: 10em;
+    border-radius: 2.5px;
+}
+
+.code {
+    font-weight: bold;
+    text-align: center;
+    margin: .2em;
+    color: black;
+    font-size: 0.9em;
+}
+
+.card-expiry-back {
+    position: absolute;
+    font-weight: bold;
+    font-size: 0.5em;
+    top: 15.6em;
+    left: 2em;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ---- Form fields in card registration modal ---- */
+#section-metodos-pago {
+    padding: 20px 0;
+}
+
+#add-card-form {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+body:not(.dark-mode) #add-card-form {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.card-input-field {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 8px 0;
+    margin-bottom: 16px;
+    font-size: 14px;
+    outline: none;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+body:not(.dark-mode) .card-input-field {
+    color: #111;
+    border-bottom-color: rgba(0, 0, 0, 0.3);
+}
+
+.card-input-field::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0;
+}
+
+body:not(.dark-mode) .card-input-field::placeholder {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.card-input-field:focus {
+    border-bottom-color: #cca142;
+}
+
+.card-inputs-row {
+    display: flex;
+    gap: 15px;
+}
+
+.card-inputs-row .card-input-field {
+    flex: 1;
 }

@@ -421,11 +421,85 @@ function abrirCheckoutModal() {
     // Abrir Checkout
     if (modalCheckout) {
         modalCheckout.classList.add("activo");
+
+        // Inject saved card selector if available
+        const tarjetas = JSON.parse(localStorage.getItem('tarjetas_guardadas') || '[]');
+        let selectorEl = document.getElementById('checkout-card-selector');
+        if (!selectorEl) {
+            selectorEl = document.createElement('div');
+            selectorEl.id = 'checkout-card-selector';
+            const form = document.getElementById('checkoutForm');
+            if (form) form.insertBefore(selectorEl, form.firstChild);
+        }
+
+        if (tarjetas.length > 0) {
+            selectorEl.innerHTML = `
+                <div style="margin-bottom:20px;">
+                    <p style="font-weight:600;color:#cca142;margin-bottom:12px;font-size:14px;">Elegir Tarjeta Guardada:</p>
+                    <div class="payment-cards-grid" style="margin-bottom:10px;">
+                        ${tarjetas.map((t, i) => `
+                            <div class="payment-card-option" data-idx="${i}" onclick="seleccionarTarjetaCheckout(${i})" style="cursor:pointer; margin-bottom: 10px;">
+                                <div class="flip-card ${t.color}" style="pointer-events:none;">
+                                    <div class="flip-card-inner">
+                                        <div class="flip-card-front">
+                                            <p class="heading_8264">MASTERCARD</p>
+                                            <svg class="logo" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="36" height="36" viewBox="0 0 48 48">
+                                                <path fill="#ff9800" d="M32 10A14 14 0 1 0 32 38A14 14 0 1 0 32 10Z"></path>
+                                                <path fill="#d50000" d="M16 10A14 14 0 1 0 16 38A14 14 0 1 0 16 10Z"></path>
+                                                <path fill="#ff3d00" d="M18,24c0,4.755,2.376,8.95,6,11.48c3.624-2.53,6-6.725,6-11.48s-2.376-8.95-6-11.48 C20.376,15.05,18,19.245,18,24z"></path>
+                                            </svg>
+                                            <svg class="chip" width="35px" height="35px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                                <rect width="40" height="30" x="5" y="10" rx="4" fill="#d4af37"/>
+                                                <path fill="none" stroke="#b08d20" stroke-width="2" d="M15 10v30M25 10v30M35 10v30M5 25h40"/>
+                                            </svg>
+                                            <svg class="contactless" width="24px" height="24px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-miterlimit="10" d="M15 15a20 20 0 0 1 0 20M23 11a28 28 0 0 1 0 28M31 7a36 36 0 0 1 0 36M39 3a44 44 0 0 1 0 44"/>
+                                            </svg>
+                                            <p class="card-number-display">${'\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 ' + t.numero.slice(-4)}</p>
+                                            <p class="card-holder-display">${t.titular.toUpperCase()}</p>
+                                        </div>
+                                        <div class="flip-card-back">
+                                            <div class="strip"></div>
+                                            <div class="mstrip"></div>
+                                            <div class="sstrip"><p class="code">***</p></div>
+                                            <p class="card-expiry-back">${t.expiry}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p style="font-size:12px;color:#aaa;margin-top:8px;">O ingresa una tarjeta manualmente abajo.</p>
+                    <hr style="border-color:rgba(204,161,66,0.2);margin:15px 0;">
+                </div>
+            `;
+        } else {
+            selectorEl.innerHTML = '';
+        }
     }
 }
 
 // Hacer abrirCheckoutModal global para que gorras.js lo pueda ver
 window.abrirCheckoutModal = abrirCheckoutModal;
+
+// Auto-fill checkout form from a saved card
+window.seleccionarTarjetaCheckout = function (index) {
+    const tarjetas = JSON.parse(localStorage.getItem('tarjetas_guardadas') || '[]');
+    const t = tarjetas[index];
+    if (!t) return;
+    const cardInput = document.getElementById('checkoutCard');
+    const nameInput = document.getElementById('checkoutName');
+    const expiryInput = document.getElementById('checkoutExpiry');
+    const cvvInput = document.getElementById('checkoutCvv');
+    if (cardInput) { cardInput.value = t.numero.replace(/(\d{4})/g, '$1 ').trim(); cardInput.readOnly = true; }
+    if (nameInput) { nameInput.value = t.titular; nameInput.readOnly = true; }
+    if (expiryInput) { expiryInput.value = t.expiry; expiryInput.readOnly = true; }
+    if (cvvInput) { cvvInput.value = t.cvv; cvvInput.readOnly = false; }
+    // Highlight selected card
+    document.querySelectorAll('#checkout-card-selector .payment-card-option').forEach((el, i) => {
+        el.classList.toggle('selected', i === index);
+    });
+};
 
 // Abrir portal de pago desde el botón del carrito
 if (btnFinalizar) {

@@ -144,9 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <hr class="ticket-hr">
                             <div class="profile-actions">
-                                <button id="btn-show-favoritos" class="profile-action-btn sec" style="border-color: #ff4757; color: #ff4757; margin-bottom: 10px;">Mis Favoritos ❤️</button>
-                                <button id="btn-show-change-pass" class="profile-action-btn">Cambiar Contraseña</button>
-                                <button id="btn-switch-account" class="profile-action-btn sec">Cambiar de Cuenta</button>
+                                <button id="btn-show-favoritos" class="profile-action-btn sec" style="border-color: #ff4757; color: #ff4757; margin-bottom: 10px;">Mis Favoritos</button>
+                                <button id="btn-show-metodos-pago" class="profile-action-btn sec" style="border-color: #cca142; color: #cca142; margin-bottom: 10px;">Tarjetas de Pago</button>
+                                <button id="btn-show-change-pass" class="profile-action-btn sec" style="border-color: #00a8ff; color: #00a8ff; margin-bottom: 20px;">Cambiar Contraseña</button>
+                                <button id="btn-show-saved-cards" class="profile-action-btn sec" style="border-color: #4caf50; color: #4caf50;">Mis Métodos de Pago</button>
                             </div>
                             <div style="flex: 1;"></div>
                             <button id="btn-logout" class="profile-action-btn danger btn-logout-bottom">Cerrar Sesión</button>
@@ -204,6 +205,85 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             document.body.insertAdjacentHTML('beforeend', favsHTML);
         }
+
+        if (!document.getElementById("modal-metodos-pago")) {
+            const cardColors = ['card-dark', 'card-gold', 'card-blue', 'card-red', 'card-green'];
+            const colorLabels = ['Clásica', 'Gold', 'Royal', 'Crimson', 'Emerald'];
+            const colorPicker = cardColors.map((c, i) =>
+                `<button class="card-color-pick" data-color="${c}" style="width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:${i === 0 ? '#222' : i === 1 ? '#3a2a00' : i === 2 ? '#0a0e2e' : i === 3 ? '#5c0000' : '#004515'};transition:all 0.2s;" title="${colorLabels[i]}"></button>`
+            ).join('');
+
+            const pagoHTML = `
+                <div id="modal-metodos-pago" class="modal-overlay">
+                    <div class="modal-container cp-modal-container" style="max-width:750px; padding:40px;">
+                        <button id="cerrar-metodos-pago" class="modal-cerrar-btn" style="top:20px;right:20px;">✖</button>
+                        <div class="profile-content">
+                            <h2 style="margin-bottom:5px; color:#cca142; text-align:center;">Tarjetas de Pago</h2>
+                            <p style="color:#888;font-size:13px;margin-bottom:25px; text-align:center;">Registra y administra tus métodos de pago.</p>
+
+                            <div id="section-metodos-pago">
+                                <!-- Live card preview -->
+                                <div style="display:flex; align-items:center; justify-content:center; gap:30px; margin-bottom:80px; flex-wrap:wrap; position:relative;">
+                                    <div id="live-card-preview" class="flip-card card-dark" style="pointer-events:none;">
+                                        <div class="flip-card-inner" id="live-card-inner">
+                                            <div class="flip-card-front">
+                                                <p class="heading_8264">MASTERCARD</p>
+                                                <svg class="logo" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="36" height="36" viewBox="0 0 48 48">
+                                                    <path fill="#ff9800" d="M32 10A14 14 0 1 0 32 38A14 14 0 1 0 32 10Z"></path>
+                                                    <path fill="#d50000" d="M16 10A14 14 0 1 0 16 38A14 14 0 1 0 16 10Z"></path>
+                                                    <path fill="#ff3d00" d="M18,24c0,4.755,2.376,8.95,6,11.48c3.624-2.53,6-6.725,6-11.48s-2.376-8.95-6-11.48 C20.376,15.05,18,19.245,18,24z"></path>
+                                                </svg>
+                                                <!-- Pure SVG Chip -->
+                                                <svg class="chip" width="35px" height="35px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                                    <rect width="40" height="30" x="5" y="10" rx="4" fill="#d4af37"/>
+                                                    <path fill="none" stroke="#b08d20" stroke-width="2" d="M15 10v30M25 10v30M35 10v30M5 25h40"/>
+                                                </svg>
+                                                <!-- Pure SVG Contactless -->
+                                                <svg class="contactless" width="24px" height="24px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                                    <path fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-miterlimit="10" d="M15 15a20 20 0 0 1 0 20M23 11a28 28 0 0 1 0 28M31 7a36 36 0 0 1 0 36M39 3a44 44 0 0 1 0 44"/>
+                                                </svg>
+                                                <p class="card-number-display" id="card-preview-number">•••• •••• •••• ••••</p>
+                                                <!-- Removed valid thru -->
+                                                <p class="card-holder-display" id="card-preview-holder">NOMBRE DEL TITULAR</p>
+                                            </div>
+
+                                            <div class="flip-card-back">
+                                                <div class="strip"></div>
+                                                <div class="mstrip"></div>
+                                                <div class="sstrip"><p class="code" id="card-preview-cvv">•••</p></div>
+                                                <!-- Expiry text added to the back below the strip -->
+                                                <p class="card-expiry-back" id="card-preview-expiry">MM/AA</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p style="font-size:13px;color:#888;margin-bottom:10px;text-align:center;">Color de tarjeta:</p>
+                                        <div style="display:flex;gap:10px;justify-content:center;">${colorPicker}</div>
+                                    </div>
+                                    <!-- Add button near the card if there are saved cards -->
+                                </div>
+
+                                <!-- Form -->
+                                <div id="add-card-form">
+                                    <input class="card-input-field" id="input-card-number" type="text" maxlength="19" placeholder="Número de tarjeta" autocomplete="cc-number">
+                                    <input class="card-input-field" id="input-card-holder" type="text" placeholder="Nombre del titular" autocomplete="cc-name" style="font-family:Poppins,sans-serif;letter-spacing:1px;">
+                                    <div class="card-inputs-row">
+                                        <input class="card-input-field" id="input-card-expiry" type="text" maxlength="5" placeholder="MM/AA" autocomplete="cc-exp">
+                                        <input class="card-input-field" id="input-card-cvv" type="text" maxlength="3" placeholder="CVV" autocomplete="cc-csc" style="letter-spacing:4px;">
+                                    </div>
+                                    <button id="btn-guardar-tarjeta" class="btn-checkout-pay" style="margin-top:30px; background-color:#28a745; border-color:#28a745; box-shadow:0 0 15px rgba(40,167,69,0.5);">Guardar y Ver Tarjetas</button>
+                                </div>
+
+                                <!-- Saved Cards -->
+                                <div id="saved-cards-list" style="margin-top:25px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', pagoHTML);
+        }
+
     }
 
     inyectarModalesAuth();
@@ -229,10 +309,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileEmailVal = document.getElementById("profileEmailVal");
 
     const btnShowChangePass = document.getElementById("btn-show-change-pass");
-    const btnSwitchAccount = document.getElementById("btn-switch-account");
+    const btnShowSavedCards = document.getElementById("btn-show-saved-cards");
     const btnLogout = document.getElementById("btn-logout");
     const btnShowFavoritos = document.getElementById("btn-show-favoritos");
     const btnCerrarFavoritos = document.getElementById("cerrar-favoritos");
+
+    // Abrir Modal de Cambiar Contraseña
+    if (btnShowChangePass && modalCP) {
+        btnShowChangePass.addEventListener("click", () => {
+            modalProfile.classList.remove("activo");
+            modalCP.classList.add("activo");
+        });
+    }
 
     // Inputs y validaciones
     const inputRegPass = document.getElementById("authRegPass");
@@ -280,6 +368,188 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     if (btnCerrarFavoritos) btnCerrarFavoritos.addEventListener("click", () => modalFavoritos.classList.remove("activo"));
+
+    // ===== TARJETAS DE PAGO =====
+    const modalMetodosPago = document.getElementById("modal-metodos-pago");
+    const btnShowMetodosPago = document.getElementById("btn-show-metodos-pago");
+    const btnCerrarMetodos = document.getElementById("cerrar-metodos-pago");
+
+    if (btnShowMetodosPago && modalMetodosPago) {
+        btnShowMetodosPago.addEventListener("click", () => {
+            modalProfile.classList.remove("activo");
+            modalMetodosPago.classList.add("activo");
+            renderizarTarjetasGuardadas();
+        });
+    }
+
+    if (btnShowSavedCards && modalMetodosPago) {
+        btnShowSavedCards.addEventListener("click", () => {
+            modalProfile.classList.remove("activo");
+            modalMetodosPago.classList.add("activo");
+            renderizarTarjetasGuardadas();
+            setTimeout(() => {
+                const savedList = document.getElementById('saved-cards-list');
+                if (savedList) savedList.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+        });
+    }
+
+    if (btnCerrarMetodos && modalMetodosPago) {
+        btnCerrarMetodos.addEventListener("click", () => modalMetodosPago.classList.remove("activo"));
+    }
+
+    // Live card preview typing
+    const inputNum = document.getElementById("input-card-number");
+    const inputHolder = document.getElementById("input-card-holder");
+    const inputExpiry = document.getElementById("input-card-expiry");
+    const inputCvv = document.getElementById("input-card-cvv");
+    const previewNum = document.getElementById("card-preview-number");
+    const previewHolder = document.getElementById("card-preview-holder");
+    const previewExpiry = document.getElementById("card-preview-expiry");
+    const previewCvv = document.getElementById("card-preview-cvv");
+    const liveCard = document.getElementById("live-card-preview");
+
+    function formatCardNumber(val) {
+        const digits = val.replace(/\D/g, '').substring(0, 16);
+        const groups = [];
+        for (let i = 0; i < 4; i++) {
+            const chunk = digits.substring(i * 4, i * 4 + 4);
+            groups.push(chunk.padEnd(4, '\u2022'));
+        }
+        return groups.join(' ');
+    }
+
+    if (inputNum) {
+        inputNum.addEventListener("input", () => {
+            // Auto-format with spaces every 4 digits
+            let val = inputNum.value.replace(/\D/g, '').substring(0, 16);
+            inputNum.value = val.replace(/(\d{4})/g, '$1 ').trim();
+            if (previewNum) previewNum.textContent = formatCardNumber(val);
+        });
+    }
+    if (inputHolder) {
+        inputHolder.addEventListener("input", () => {
+            if (previewHolder) previewHolder.textContent = inputHolder.value.toUpperCase() || 'NOMBRE DEL TITULAR';
+        });
+    }
+    if (inputExpiry) {
+        inputExpiry.addEventListener("input", () => {
+            let val = inputExpiry.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2);
+            inputExpiry.value = val;
+            if (previewExpiry) previewExpiry.textContent = inputExpiry.value || 'MM/AA';
+        });
+    }
+    if (inputCvv) {
+        inputCvv.addEventListener("input", () => {
+            if (previewCvv) previewCvv.textContent = inputCvv.value.replace(/\D/g, '').substring(0, 3) || '\u2022\u2022\u2022';
+        });
+    }
+
+    // Flip animation on Expiry & CVV focus
+    const liveCardInner = document.getElementById("live-card-inner");
+    [inputExpiry, inputCvv].forEach(inp => {
+        if (inp) {
+            inp.addEventListener("focus", () => { if (liveCardInner) liveCardInner.classList.add("flipped"); });
+            inp.addEventListener("blur", () => { if (liveCardInner) liveCardInner.classList.remove("flipped"); });
+        }
+    });
+
+    // Color picker
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("card-color-pick") && liveCard) {
+            liveCard.className = 'flip-card ' + e.target.dataset.color;
+            document.querySelectorAll('.card-color-pick').forEach(b => b.style.border = '2px solid transparent');
+            e.target.style.border = '2px solid #cca142';
+        }
+    });
+
+    // Save card
+    const btnGuardarTarjeta = document.getElementById("btn-guardar-tarjeta");
+    if (btnGuardarTarjeta) {
+        btnGuardarTarjeta.addEventListener("click", () => {
+            const numero = (inputNum?.value || '').replace(/\s/g, '');
+            const titular = inputHolder?.value || '';
+            const expiry = inputExpiry?.value || '';
+            const cvv = inputCvv?.value || '';
+            const color = liveCard?.className.replace('flip-card', '').trim() || 'card-dark';
+
+            if (numero.length < 16 || !titular || expiry.length < 5 || cvv.length < 3) {
+                alert('Por favor completa todos los campos correctamente.');
+                return;
+            }
+            const tarjetas = JSON.parse(localStorage.getItem('tarjetas_guardadas') || '[]');
+            tarjetas.push({ numero, titular, expiry, cvv, color });
+            localStorage.setItem('tarjetas_guardadas', JSON.stringify(tarjetas));
+
+            // Reset form
+            if (inputNum) inputNum.value = '';
+            if (inputHolder) inputHolder.value = '';
+            if (inputExpiry) inputExpiry.value = '';
+            if (inputCvv) inputCvv.value = '';
+            if (previewNum) previewNum.textContent = '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022';
+            if (previewHolder) previewHolder.textContent = 'NOMBRE DEL TITULAR';
+            if (previewExpiry) previewExpiry.textContent = 'MM/AA';
+            if (previewCvv) previewCvv.textContent = '\u2022\u2022\u2022';
+
+            renderizarTarjetasGuardadas();
+            const savedList = document.getElementById('saved-cards-list');
+            if (savedList) savedList.scrollIntoView({ behavior: 'smooth' });
+            alert('\u2705 Tarjeta guardada correctamente.');
+        });
+    }
+
+    function renderizarTarjetasGuardadas() {
+        const lista = document.getElementById('saved-cards-list');
+        if (!lista) return;
+        const tarjetas = JSON.parse(localStorage.getItem('tarjetas_guardadas') || '[]');
+        if (tarjetas.length === 0) {
+            lista.innerHTML = '<h4 style="color:#cca142;margin-bottom:20px;font-size:1.1rem;text-align:center;">Mis Métodos de Pago</h4><p style="color:#888;font-size:13px;text-align:center;">No tienes tarjetas guardadas aún.</p>';
+            return;
+        }
+        lista.innerHTML = '<h4 style="color:#cca142;margin-bottom:20px;font-size:1.1rem;text-align:center;">Mis Métodos de Pago</h4><div class="payment-cards-grid" style="justify-content:center; padding-bottom:15px;">' +
+            tarjetas.map((t, i) => `
+                <div class="payment-card-option" style="position:relative; margin-bottom: 10px;">
+                    <div class="flip-card ${t.color}">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <p class="heading_8264">MASTERCARD</p>
+                                <svg class="logo" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="36" height="36" viewBox="0 0 48 48">
+                                    <path fill="#ff9800" d="M32 10A14 14 0 1 0 32 38A14 14 0 1 0 32 10Z"></path>
+                                    <path fill="#d50000" d="M16 10A14 14 0 1 0 16 38A14 14 0 1 0 16 10Z"></path>
+                                    <path fill="#ff3d00" d="M18,24c0,4.755,2.376,8.95,6,11.48c3.624-2.53,6-6.725,6-11.48s-2.376-8.95-6-11.48 C20.376,15.05,18,19.245,18,24z"></path>
+                                </svg>
+                                <svg class="chip" width="35px" height="35px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="40" height="30" x="5" y="10" rx="4" fill="#d4af37"/>
+                                    <path fill="none" stroke="#b08d20" stroke-width="2" d="M15 10v30M25 10v30M35 10v30M5 25h40"/>
+                                </svg>
+                                <svg class="contactless" width="24px" height="24px" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-miterlimit="10" d="M15 15a20 20 0 0 1 0 20M23 11a28 28 0 0 1 0 28M31 7a36 36 0 0 1 0 36M39 3a44 44 0 0 1 0 44"/>
+                                </svg>
+                                <p class="card-number-display">${t.numero.replace(/(\d{4})/g, '$1 ').trim().replace(/(\d{4} ){2}(\d{4})/, '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 $3')}</p>
+                                <p class="card-holder-display">${t.titular.toUpperCase()}</p>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="strip"></div>
+                                <div class="mstrip"></div>
+                                <div class="sstrip"><p class="code">***</p></div>
+                                <p class="card-expiry-back">${t.expiry}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="eliminarTarjeta(${i})" title="Eliminar Método de Pago" style="position:absolute;top:-10px;right:-10px;background:#ff4757;border:2px solid #111;border-radius:50%;width:30px;height:30px;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:5;transition:0.2s;box-shadow:0 4px 6px rgba(0,0,0,0.3);">×</button>
+                </div>
+            `).join('') + '</div>';
+    }
+    window.renderizarTarjetasGuardadas = renderizarTarjetasGuardadas;
+
+    window.eliminarTarjeta = function (index) {
+        const tarjetas = JSON.parse(localStorage.getItem('tarjetas_guardadas') || '[]');
+        tarjetas.splice(index, 1);
+        localStorage.setItem('tarjetas_guardadas', JSON.stringify(tarjetas));
+        renderizarTarjetasGuardadas();
+    };
+    // ===== FIN TARJETAS DE PAGO =====
 
     // Intercambio de pestañas Login / Register
     if (tabLogin && tabRegister && formLogin && formRegister) {
@@ -687,15 +957,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const base64 = ev.target.result;
-                // Save keyed to current account email
                 const email = localStorage.getItem("userEmail");
-                if (email) {
-                    localStorage.setItem("avatar_" + email, base64);
-                }
-                actualizarAvatarUI(base64);
-                // Update avatar inside profile modal immediately
-                if (avatarEmoji) {
-                    avatarEmoji.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                try {
+                    if (email) {
+                        localStorage.setItem("avatar_" + email, base64);
+                    }
+                    actualizarAvatarUI(base64);
+                    if (avatarEmoji) {
+                        avatarEmoji.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                    }
+                } catch (e) {
+                    alert('Hubo un error guardando la foto. Intenta con otra imagen.');
                 }
             };
             reader.readAsDataURL(file);
