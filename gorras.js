@@ -12,6 +12,24 @@ const categorias = {
 // ==========================================
 const productos = [
     {
+        nombre: "Golden Eagle",
+        descripcion: "Gorra deportiva de lujo. Bordados Gold Edition en hilos metálicos 24k.",
+        precio: 950,
+        enOferta: false,
+        imagen: "Gorra4.jpeg",
+        categoria: "originales"
+    },
+    {
+        nombre: "Royal Gold Crown",
+        descripcion: "Corona bordada frontal Gold Edition premium. La joya de la colección.",
+        precio: 1200,
+        precioOriginal: 1600,
+        descuento: 25,
+        enOferta: true,
+        imagen: "Gorra15.jpeg",
+        categoria: "colaboraciones"
+    },
+    {
         nombre: "Phantom Black Edition",
         descripcion: "Gorra ultra negra mate estilo Phantom Black, elegancia pura.",
         precio: 850,
@@ -204,17 +222,25 @@ function inicializarTienda() {
     const esPaginaOfertas = window.location.pathname.includes("ofertas.html");
 
     if (esPaginaOfertas) {
-        // Inicializar la página de ofertas
         if (contenedorPrincipal) {
-            contenedorPrincipal.innerHTML = `
-                <section class="seccion-carrusel">
-                    <h2 class="seccion-titulo">Ofertas Especiales - Con Descuentos Exclusivos</h2>
-                    <div class="ofertas-grid" id="grid-ofertas"></div>
-                </section>
-            `;
-            const grid = document.getElementById("grid-ofertas");
-            const productosOferta = productos.filter(p => p.enOferta);
-            renderizarGridOfertas(productosOferta, grid);
+            const token = localStorage.getItem("token");
+            if (!token) {
+                contenedorPrincipal.innerHTML = `
+                 <div class="auth-lock-container">
+                    <h2>Inicia Sesión para desbloquear ofertas exclusivas</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Crea una cuenta o inicia sesión desde tu perfil para acceder a nuestros descuentos.</p>
+                 </div>`;
+            } else {
+                contenedorPrincipal.innerHTML = `
+                    <section class="seccion-carrusel">
+                        <h2 class="seccion-titulo">Ofertas Especiales - Con Descuentos Exclusivos</h2>
+                        <div class="ofertas-grid" id="grid-ofertas"></div>
+                    </section>
+                `;
+                const grid = document.getElementById("grid-ofertas");
+                const productosOferta = productos.filter(p => p.enOferta);
+                renderizarGridOfertas(productosOferta, grid);
+            }
         }
         inicializarBuscador();
         return;
@@ -288,7 +314,8 @@ function renderizarGridOfertas(listaAImprimir, grid) {
         const indexOriginal = productos.findIndex(p => p.nombre === producto.nombre && p.imagen === producto.imagen);
 
         grid.innerHTML += `
-            <div class="card card-oferta">
+            <div class="card card-oferta" data-index="${indexOriginal}">
+                <button class="btn-favorito" onclick="toggleFavorito(${indexOriginal}, event)">🤍</button>
                 <span class="badge-oferta">🔥 -${producto.descuento}% OFF</span>
                 <div class="img-container">
                     <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
@@ -309,7 +336,72 @@ function renderizarGridOfertas(listaAImprimir, grid) {
             </div>
         `;
     });
+    sincronizarFavoritosVisuales();
 }
+
+window.toggleFavorito = function (index, e) {
+    if (e) e.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
+    if (favs.includes(index)) {
+        favs = favs.filter(id => id !== index);
+    } else {
+        favs.push(index);
+    }
+    localStorage.setItem("favoritos", JSON.stringify(favs));
+    sincronizarFavoritosVisuales();
+
+    // Refresh sidebar rendering if it's currently open
+    if (typeof renderizarFavoritosSidebar === 'function') {
+        const favRow = document.getElementById("profile-favoritos-grid");
+        if (favRow) renderizarFavoritosSidebar();
+    }
+};
+
+window.sincronizarFavoritosVisuales = function () {
+    let favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
+    document.querySelectorAll(".card").forEach(card => {
+        const idx = parseInt(card.getAttribute("data-index"));
+        const btn = card.querySelector(".btn-favorito");
+        if (btn) {
+            if (favs.includes(idx)) {
+                btn.classList.add("active");
+                btn.innerText = "❤";
+            } else {
+                btn.classList.remove("active");
+                btn.innerText = "🤍";
+            }
+        }
+    });
+};
+
+window.renderizarFavoritosSidebar = function () {
+    const grid = document.getElementById("profile-favoritos-grid");
+    if (!grid) return;
+
+    let favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
+    grid.innerHTML = '';
+
+    if (favs.length === 0) {
+        grid.innerHTML = '<p style="color:#aaa; text-align:center;">No tienes gorras en tus favoritos. Explora y presiona 🤍 para agregarlas.</p>';
+        return;
+    }
+
+    favs.forEach(indexOriginal => {
+        const producto = productos[indexOriginal];
+        if (!producto) return;
+        grid.innerHTML += `
+            <div class="card" style="margin: 0; min-height: auto; flex: none; display:flex; flex-direction:row; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px; position:relative; overflow:visible;">
+                <button style="position:absolute; right:-5px; top:-5px; background:#fff; border:1px solid #ddd; border-radius:50%; width:25px; height:25px; cursor:pointer; color:#ff4757; box-shadow:0 2px 5px rgba(0,0,0,0.2); font-size:12px; display:flex; align-items:center; justify-content:center; z-index:5;" onclick="toggleFavorito(${indexOriginal}, event)">✖</button>
+                <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})" style="width:70px; height:70px; object-fit:cover; border-radius:8px; cursor:pointer; margin-right:15px; border: 1px solid rgba(0,0,0,0.1);">
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                    <h3 style="font-size:14px; margin-bottom:5px; margin-top:0; color:#333;">${producto.nombre}</h3>
+                    <p style="font-weight:bold; color:#cca142; margin:0; font-size:13px;">$${producto.precio} MXN</p>
+                    <button class="comprar" onclick="procesarCompraDirecta(${indexOriginal})" style="padding:4px 8px; font-size:11px; margin-top:8px; width:fit-content; background:#cca142; color:#fff; border:none; border-radius:4px; cursor:pointer;">Comprar</button>
+                </div>
+            </div>
+         `;
+    });
+};
 
 // ==========================================
 // RENDERIZADO DEL CONTENIDO DE TARJETAS (FILTRABLE)
@@ -357,7 +449,8 @@ function renderizarCatalogo(listaAImprimir) {
             }
 
             trackDestino.innerHTML += `
-                <div class="card ${producto.enOferta ? 'card-oferta' : ''}">
+                <div class="card ${producto.enOferta ? 'card-oferta' : ''}" data-index="${indexOriginal}">
+                    <button class="btn-favorito" onclick="toggleFavorito(${indexOriginal}, event)">🤍</button>
                     ${badgeHTML}
                     <div class="img-container">
                         <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
@@ -376,6 +469,7 @@ function renderizarCatalogo(listaAImprimir) {
             `;
         }
     });
+    sincronizarFavoritosVisuales();
 }
 
 // ==========================================

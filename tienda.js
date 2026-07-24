@@ -144,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             </div>
                             <hr class="ticket-hr">
                             <div class="profile-actions">
+                                <button id="btn-show-favoritos" class="profile-action-btn sec" style="border-color: #ff4757; color: #ff4757; margin-bottom: 10px;">Mis Favoritos ❤️</button>
                                 <button id="btn-show-change-pass" class="profile-action-btn">Cambiar Contraseña</button>
                                 <button id="btn-switch-account" class="profile-action-btn sec">Cambiar de Cuenta</button>
                             </div>
@@ -184,6 +185,25 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             document.body.insertAdjacentHTML('beforeend', changePassHTML);
         }
+
+        if (!document.getElementById("modal-favoritos")) {
+            const favsHTML = `
+                <div id="modal-favoritos" class="modal-overlay">
+                    <div class="profile-modal-container">
+                        <button id="cerrar-favoritos" class="modal-cerrar-btn">✖</button>
+                        <div class="profile-content">
+                            <h2 style="margin-bottom: 15px; color:#ff4757;">Mis Favoritos ❤️</h2>
+                            <p style="color:#666; font-size:14px; margin-bottom: 20px;">Tu lista de deseos personal.</p>
+                            
+                            <div id="profile-favoritos-grid" style="display:flex; flex-direction:column; gap:15px; overflow-y:auto; flex:1; padding-bottom:20px;">
+                                <!-- Favoritos renderizados por gorras.js -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', favsHTML);
+        }
     }
 
     inyectarModalesAuth();
@@ -192,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalAuth = document.getElementById("modal-auth");
     const modalProfile = document.getElementById("modal-user-profile");
     const modalCP = document.getElementById("modal-change-password");
+    const modalFavoritos = document.getElementById("modal-favoritos");
 
     const btnPerfilUsuario = document.getElementById("btn-perfil-usuario");
     const btnCerrarAuth = document.getElementById("cerrar-auth");
@@ -210,6 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnShowChangePass = document.getElementById("btn-show-change-pass");
     const btnSwitchAccount = document.getElementById("btn-switch-account");
     const btnLogout = document.getElementById("btn-logout");
+    const btnShowFavoritos = document.getElementById("btn-show-favoritos");
+    const btnCerrarFavoritos = document.getElementById("cerrar-favoritos");
 
     // Inputs y validaciones
     const inputRegPass = document.getElementById("authRegPass");
@@ -246,6 +269,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnCerrarAuth) btnCerrarAuth.addEventListener("click", () => modalAuth.classList.remove("activo"));
     if (btnCerrarProfile) btnCerrarProfile.addEventListener("click", () => modalProfile.classList.remove("activo"));
     if (btnCerrarCP) btnCerrarCP.addEventListener("click", () => modalCP.classList.remove("activo"));
+    if (btnCerrarFavoritos) btnCerrarFavoritos.addEventListener("click", () => modalFavoritos.classList.remove("activo"));
+
+    // Boton abrir favoritos desde Perfil
+    if (btnShowFavoritos) {
+        btnShowFavoritos.addEventListener("click", () => {
+            modalProfile.classList.remove("activo");
+            modalFavoritos.classList.add("activo");
+            if (typeof renderizarFavoritosSidebar === 'function') renderizarFavoritosSidebar();
+        });
+    }
+    if (btnCerrarFavoritos) btnCerrarFavoritos.addEventListener("click", () => modalFavoritos.classList.remove("activo"));
 
     // Intercambio de pestañas Login / Register
     if (tabLogin && tabRegister && formLogin && formRegister) {
