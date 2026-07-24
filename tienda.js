@@ -189,13 +189,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("modal-favoritos")) {
             const favsHTML = `
                 <div id="modal-favoritos" class="modal-overlay">
-                    <div class="profile-modal-container">
-                        <button id="cerrar-favoritos" class="modal-cerrar-btn">✖</button>
+                    <div class="modal-container cp-modal-container" style="box-shadow: 0 0 15px rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.2); max-width: 900px; padding: 40px;">
+                        <button id="cerrar-favoritos" class="modal-cerrar-btn" style="top: 20px; right: 20px;">✖</button>
                         <div class="profile-content">
                             <h2 style="margin-bottom: 15px; color:#ff4757;">Mis Favoritos ❤️</h2>
-                            <p style="color:#666; font-size:14px; margin-bottom: 20px;">Tu lista de deseos personal.</p>
+                            <p style="color:#666; font-size:14px; margin-bottom: 30px;">Tu lista de deseos personal.</p>
                             
-                            <div id="profile-favoritos-grid" style="display:flex; flex-direction:column; gap:15px; overflow-y:auto; flex:1; padding-bottom:20px;">
+                            <div id="profile-favoritos-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:25px; overflow-y:auto; flex:1; max-height: 60vh; padding: 10px;">
                                 <!-- Favoritos renderizados por gorras.js -->
                             </div>
                         </div>
@@ -510,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.removeItem("token");
             localStorage.removeItem("userEmail");
             localStorage.removeItem("username");
-            // DO NOT remove avatar - it stays keyed to the email for next time
+            // DO NOT remove avatar
             actualizarAvatarUI(null);
 
             const checkoutEmail = document.getElementById("checkoutEmail");
@@ -519,8 +519,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkoutEmail.readOnly = false;
             }
 
-            alert("Has cerrado sesión correctamente.");
             modalProfile.classList.remove("activo");
+            window.location.reload(); // Forzar recarga para ocultar ofertas y descuentos
         });
     }
 

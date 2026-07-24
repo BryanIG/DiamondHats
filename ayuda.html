@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Hats | Centro de Ayuda & Pedidos</title>
+    <!-- Mismas fuentes y estilos base globales -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="tienda.css">
+
+    <!-- Librerias requeridas para generar los PDF dinamicamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="logo">
+                <img src="Imagenes page/Header1.png" alt="Diamond Hats">
+            </div>
+            <!-- Iconos -->
+            <div class="icons">
+            </div>
+            <!-- Menu movil -->
+            <div class="menu-btn">☰</div>
+        </div>
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <a href="tienda.html">Inicio</a>
+            <a href="gorras.html">Gorras</a>
+            <a href="ofertas.html">Ofertas</a>
+            <a href="contacto.html">Contacto</a>
+            <a href="ayuda.html" class="active">Ayuda</a>
+        </nav>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="contacto-main">
+        <section class="contacto-hero" style="height: 35vh; min-height: 300px;">
+            <video class="contacto-hero-video" autoplay loop muted playsinline style="object-position: center 30%;">
+                <source src="Imagenes page/contactovideo.mp4" type="video/mp4">
+            </video>
+            <div class="contacto-hero-overlay"></div>
+            <div class="contacto-hero-text">
+                <h1>Tu Cuenta & Envios</h1>
+                <p>Revisa tu historial de compras y rastrea tus pedidos en vivo.</p>
+            </div>
+        </section>
+
+        <section class="ayuda-container">
+            <!-- Auth Lock Notice -->
+            <div id="ayuda-auth-wall" class="auth-lock-container"
+                style="display:none; text-align:center; padding:50px;">
+                <h2 style="color:#cca142;">Acceso Restringido</h2>
+                <p style="color:#888; font-size:16px;">Inicia sesión para visualizar tu historial de compras y rastrear
+                    tus paquetes.</p>
+                <div style="margin-top:20px;">
+                    <button class="btn btn-gold"
+                        onclick="document.getElementById('modal-auth').classList.add('activo')">Identificarse</button>
+                </div>
+            </div>
+
+            <!-- Panel de Ayuda (Visible Solo Login) -->
+            <div id="ayuda-dashboard" style="display:none;">
+                <h2 style="margin-bottom:30px; font-size:1.8rem;">Bienvenido de vuelta, <span id="ayuda-user-name"
+                        style="color:#cca142;">Cliente</span></h2>
+
+                <div class="ayuda-grid">
+                    <!-- TIMELINE: Estado del ultimo pedido -->
+                    <div class="ayuda-card">
+                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">📦 Pedidos
+                            en Curso</h3>
+                        <div id="timeline-container-render">
+                            <!-- Se renderiza via JS -->
+                        </div>
+                    </div>
+
+                    <!-- HISTORIAL: Tickets guardados -->
+                    <div class="ayuda-card">
+                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">📄
+                            Historial de Compras</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID Pedido</th>
+                                        <th>Fecha y Hora</th>
+                                        <th>Total</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-historial">
+                                    <!-- Llenado dinámico vía JS -->
+                                </tbody>
+                            </table>
+                            <p id="no-history-msg" style="display:none; padding:20px; color:#aaa; text-align:center;">No
+                                tienes compras registradas aún.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER MANTENIDO IGUAL -->
+    <footer>
+        <p>&copy; 2024 Diamond Hats. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Contenedor invisible para renderizar PDF de tickets historicos -->
+    <div id="hidden-pdf-render" style="display:none; position:absolute; top:-9999px;"></div>
+
+    <script src="tienda.js"></script>
+    <script src="ayuda.js"></script>
+</body>
+
+</html>

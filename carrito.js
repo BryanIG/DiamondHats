@@ -572,7 +572,7 @@ if (formCheckout) {
             const userColonia = localStorage.getItem("userColonia") || "";
             const direccionCompleta = userCalle !== "No registrada" ? `${userCalle} ${userNumExt}, Col. ${userColonia}` : "Recoger en sucursal / No registrada";
 
-            // Store ticket data for PDF generation
+            // Store ticket data for PDF generation and Purchase History Dashboard
             window._ticketData = {
                 ticketId,
                 activeUser,
@@ -582,8 +582,14 @@ if (formCheckout) {
                 itemsHtml,
                 totalVal,
                 direccionCompleta,
-                date: new Date().toLocaleString()
+                date: new Date().toLocaleString(),
+                en_progreso: true, // Para el dashboard del Timeline de entrega
+                estado_envio: "Confirmado" // 'Confirmado', 'Empacado', 'En Camino', 'Entregado'
             };
+
+            let historial = JSON.parse(localStorage.getItem("historial_compras") || "[]");
+            historial.unshift(window._ticketData); // Insertar al inicio (mas reciente primero)
+            localStorage.setItem("historial_compras", JSON.stringify(historial));
         }
 
         // Vaciar Carrito

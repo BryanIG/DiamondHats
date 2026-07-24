@@ -390,13 +390,17 @@ window.renderizarFavoritosSidebar = function () {
         const producto = productos[indexOriginal];
         if (!producto) return;
         grid.innerHTML += `
-            <div class="card" style="margin: 0; min-height: auto; flex: none; display:flex; flex-direction:row; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px; position:relative; overflow:visible;">
-                <button style="position:absolute; right:-5px; top:-5px; background:#fff; border:1px solid #ddd; border-radius:50%; width:25px; height:25px; cursor:pointer; color:#ff4757; box-shadow:0 2px 5px rgba(0,0,0,0.2); font-size:12px; display:flex; align-items:center; justify-content:center; z-index:5;" onclick="toggleFavorito(${indexOriginal}, event)">✖</button>
-                <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})" style="width:70px; height:70px; object-fit:cover; border-radius:8px; cursor:pointer; margin-right:15px; border: 1px solid rgba(0,0,0,0.1);">
-                <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                    <h3 style="font-size:14px; margin-bottom:5px; margin-top:0; color:#333;">${producto.nombre}</h3>
-                    <p style="font-weight:bold; color:#cca142; margin:0; font-size:13px;">$${producto.precio} MXN</p>
-                    <button class="comprar" onclick="procesarCompraDirecta(${indexOriginal})" style="padding:4px 8px; font-size:11px; margin-top:8px; width:fit-content; background:#cca142; color:#fff; border:none; border-radius:4px; cursor:pointer;">Comprar</button>
+            <div class="card" style="margin: 0; min-height: 280px; display:flex; flex-direction:column; position:relative; overflow:visible;">
+                <button style="position:absolute; right:-10px; top:-10px; background:#fff; border:1px solid #ddd; border-radius:50%; width:30px; height:30px; cursor:pointer; color:#ff4757; box-shadow:0 2px 5px rgba(0,0,0,0.2); font-size:14px; display:flex; align-items:center; justify-content:center; z-index:5;" onclick="toggleFavorito(${indexOriginal}, event)">✖</button>
+                <div class="img-container">
+                    <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})" style="cursor:pointer; border-radius:8px;">
+                </div>
+                <div class="info" style="display:flex; flex-direction:column; flex:1; justify-content:space-between;">
+                    <div>
+                        <h3 style="font-size:15px; margin-bottom:5px; color:#333;">${producto.nombre}</h3>
+                        <p style="font-weight:bold; color:#cca142; margin-bottom:5px;">$${producto.precioOriginal || producto.precio} MXN</p>
+                    </div>
+                    <button class="comprar" onclick="procesarCompraDirecta(${indexOriginal})" style="margin-top:auto;">Comprar</button>
                 </div>
             </div>
          `;
@@ -433,24 +437,30 @@ function renderizarCatalogo(listaAImprimir) {
         const indexOriginal = productos.findIndex(p => p.nombre === producto.nombre && p.imagen === producto.imagen);
 
         if (trackDestino) {
-            if (seccionDestino) seccionDestino.style.display = 'block'; // Mostrar la fila si tiene productos
+            if (seccionDestino) seccionDestino.style.display = 'block';
 
             let badgeHTML = '';
             let precioHTML = `<div class="precio">$${producto.precio} MXN</div>`;
+            const token = localStorage.getItem("token");
 
             if (producto.enOferta) {
-                badgeHTML = `<span class="badge-oferta">🔥 -${producto.descuento}% OFF</span>`;
-                precioHTML = `
-                    <div class="precio-container">
-                        <span class="precio-actual">$${producto.precio} MXN</span>
-                        <span class="precio-original">$${producto.precioOriginal} MXN</span>
-                    </div>
-                `;
+                if (token) {
+                    badgeHTML = `<span class="badge-oferta">🔥 -${producto.descuento}% OFF</span>`;
+                    precioHTML = `
+                        <div class="precio-container">
+                            <span class="precio-actual">$${producto.precio} MXN</span>
+                            <span class="precio-original">$${producto.precioOriginal} MXN</span>
+                        </div>
+                     `;
+                } else {
+                    // Sin sesión iniciada, mostrar el precio normal sin descuento ni medallas
+                    precioHTML = `<div class="precio">$${producto.precioOriginal} MXN</div>`;
+                }
             }
 
             trackDestino.innerHTML += `
-                <div class="card ${producto.enOferta ? 'card-oferta' : ''}" data-index="${indexOriginal}">
-                    <button class="btn-favorito" onclick="toggleFavorito(${indexOriginal}, event)">🤍</button>
+                <div class="card ${producto.enOferta && token ? 'card-oferta' : ''}" data-index="${indexOriginal}">
+                    ${token ? `<button class="btn-favorito" onclick="toggleFavorito(${indexOriginal}, event)">🤍</button>` : ''}
                     ${badgeHTML}
                     <div class="img-container">
                         <img src="Imagenes page/${producto.imagen}" alt="${producto.nombre}" onclick="abrirModalDetalle(${indexOriginal})">
