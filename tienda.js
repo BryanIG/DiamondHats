@@ -11,7 +11,9 @@ import {
 import {
     doc,
     setDoc,
-    getDoc
+    getDoc,
+    collection,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const ADMIN_EMAIL = "admin@diamondhats.com";
@@ -42,9 +44,6 @@ function getKeyDireccionDefault() {
     return "direccion_default_" + getAccountEmail();
 }
 
-// ============================================================
-// GESTIÓN DE MÚLTIPLES SESIONES ABIERTAS (SIN PEDIR CONTRASEÑA)
-// ============================================================
 function obtenerCuentasGuardadas() {
     try {
         return JSON.parse(localStorage.getItem("dh_saved_accounts") || "[]");
@@ -158,6 +157,94 @@ function procesarImagenPerfil(file, callback) {
     reader.readAsDataURL(file);
 }
 
+// ============================================================
+// SISTEMA GLOBAL DE NOTIFICACIONES EN BOTÓN "CONTACTO"
+// ============================================================
+let unsubscribeNotifQuejas = null;
+
+function actualizarBadgeContactoNavbar({ tipo, cantidad }) {
+    const linkContacto = document.querySelector('.navbar a[href="contacto.html"]');
+    const menuBtn = document.querySelector(".menu-btn");
+    if (!linkContacto) return;
+
+    linkContacto.classList.remove("nav-contact-gold", "nav-contact-red");
+    const badgePrevio = linkContacto.querySelector(".dh-nav-badge");
+    if (badgePrevio) badgePrevio.remove();
+
+    if (menuBtn) {
+        menuBtn.classList.remove("has-notif", "has-notif-red");
+    }
+
+    if (!tipo || cantidad <= 0) return;
+
+    const badge = document.createElement("span");
+    badge.className = `dh-nav-badge ${tipo}`;
+    badge.textContent = cantidad;
+    linkContacto.appendChild(badge);
+
+    if (tipo === "red") {
+        linkContacto.classList.add("nav-contact-red");
+        if (menuBtn) menuBtn.classList.add("has-notif", "has-notif-red");
+    } else {
+        linkContacto.classList.add("nav-contact-gold");
+        if (menuBtn) menuBtn.classList.add("has-notif");
+    }
+}
+
+function iniciarEscuchaNotificacionesContacto(user) {
+    if (unsubscribeNotifQuejas) {
+        unsubscribeNotifQuejas();
+        unsubscribeNotifQuejas = null;
+    }
+
+    if (!user) {
+        actualizarBadgeContactoNavbar({ tipo: null, cantidad: 0 });
+        return;
+    }
+
+    const esAdmin = user.email === ADMIN_EMAIL;
+
+    unsubscribeNotifQuejas = onSnapshot(collection(db, "quejas"), (snapshot) => {
+        if (esAdmin) {
+            let reclamosNuevos = 0;
+            let mensajesPendientes = 0;
+
+            snapshot.forEach((docSnap) => {
+                const q = docSnap.data();
+                if (q.estado === "cerrado") return;
+
+                if (q.leidoPorAdmin === false) {
+                    reclamosNuevos++;
+                } else if (q.tieneMensajeAdminPendiente === true) {
+                    mensajesPendientes++;
+                }
+            });
+
+            if (reclamosNuevos > 0) {
+                actualizarBadgeContactoNavbar({ tipo: "red", cantidad: reclamosNuevos });
+            } else if (mensajesPendientes > 0) {
+                actualizarBadgeContactoNavbar({ tipo: "gold", cantidad: mensajesPendientes });
+            } else {
+                actualizarBadgeContactoNavbar({ tipo: null, cantidad: 0 });
+            }
+        } else {
+            let mensajesParaCliente = 0;
+            snapshot.forEach((docSnap) => {
+                const q = docSnap.data();
+                if (q.correo === user.email && q.tieneMensajeUsuarioPendiente === true) {
+                    mensajesParaCliente++;
+                }
+            });
+
+            if (mensajesParaCliente > 0) {
+                actualizarBadgeContactoNavbar({ tipo: "gold", cantidad: mensajesParaCliente });
+            } else {
+                actualizarBadgeContactoNavbar({ tipo: null, cantidad: 0 });
+            }
+        }
+    });
+}
+
 function inyectarEstilosAuthExtra() {
     if (document.getElementById("dh-auth-extra-styles")) return;
     const style = document.createElement("style");
@@ -185,11 +272,6 @@ function inyectarEstilosAuthExtra() {
             color: #cca142;
             font-size: 12px;
             font-weight: 700;
-        }
-        .reg-avatar-circle:hover {
-            border-style: solid;
-            transform: scale(1.05);
-            box-shadow: 0 0 18px rgba(204, 161, 66, 0.35);
         }
         .reg-avatar-circle img {
             width: 100%;
@@ -221,7 +303,6 @@ function inyectarEstilosAuthExtra() {
             display: flex;
             align-items: center;
             gap: 7px;
-            transition: color 0.25s ease;
         }
         .psw-req-item.met {
             color: #2ecc71;
@@ -240,10 +321,9 @@ function inyectarEstilosAuthExtra() {
         .btn-checkout-pay:disabled {
             opacity: 0.45;
             cursor: not-allowed;
-            transform: none !important;
         }
 
-        /* CENTRO DE PERFIL VIP SIN BARRAS DE DESLIZAMIENTO VISIBLES */
+        /* CENTRO DE PERFIL VIP */
         #modal-user-profile {
             display: none !important;
             pointer-events: none !important;
@@ -251,18 +331,19 @@ function inyectarEstilosAuthExtra() {
             justify-content: center !important;
             background: rgba(0, 0, 0, 0) !important;
             z-index: 3500 !important;
+            padding: 12px;
         }
         #modal-user-profile.activo {
             display: flex !important;
             pointer-events: auto !important;
-            background: rgba(0, 0, 0, 0.82) !important;
+            background: rgba(0, 0, 0, 0.85) !important;
             backdrop-filter: blur(10px) !important;
         }
         .dh-hub-window {
-            width: 94%;
+            width: 100%;
             max-width: 960px;
             height: auto;
-            max-height: 92vh;
+            max-height: 90dvh;
             background: linear-gradient(155deg, #161616 0%, #0b0b0b 100%);
             border: 1px solid rgba(212, 175, 55, 0.45);
             border-radius: 22px;
@@ -272,26 +353,25 @@ function inyectarEstilosAuthExtra() {
             overflow: hidden;
             position: relative;
             color: #f5f5f5;
-            animation: dhHubPop 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+            animation: dhHubPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
         }
         @keyframes dhHubPop {
-            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            from { transform: scale(0.92) translateY(15px); opacity: 0; }
             to { transform: scale(1) translateY(0); opacity: 1; }
         }
         .dh-hub-close {
             position: absolute;
-            top: 16px;
-            right: 18px;
+            top: 14px;
+            right: 14px;
             padding: 6px 12px;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #bbb;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ddd;
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
-            z-index: 20;
-            transition: 0.25s;
+            z-index: 30;
         }
         .dh-hub-close:hover {
             background: #e74c3c;
@@ -307,28 +387,35 @@ function inyectarEstilosAuthExtra() {
             align-items: center;
             overflow-y: auto;
             scrollbar-width: none;
-            -ms-overflow-style: none;
         }
         .dh-hub-sidebar::-webkit-scrollbar,
         .dh-hub-content::-webkit-scrollbar,
-        #modal-auth .auth-modal-container::-webkit-scrollbar {
+        .dh-hub-window::-webkit-scrollbar,
+        .dh-hub-nav::-webkit-scrollbar {
             display: none;
+        }
+        .dh-hub-user-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .dh-hub-user-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .dh-hub-avatar-wrap {
             position: relative;
-            width: 86px;
-            height: 86px;
+            width: 82px;
+            height: 82px;
             border-radius: 50%;
             padding: 3px;
             background: linear-gradient(135deg, #f3d266, #b0882e, #ffeaa7);
-            box-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
             cursor: pointer;
             margin-bottom: 10px;
             flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-        .dh-hub-avatar-wrap:hover {
-            transform: scale(1.05);
         }
         .dh-hub-avatar-inner {
             width: 100%;
@@ -356,22 +443,20 @@ function inyectarEstilosAuthExtra() {
             border-radius: 10px;
             background: #d4af37;
             color: #111;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 800;
             border: 2px solid #111;
         }
         .dh-hub-username {
-            font-size: 1.08rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #fff;
-            text-align: center;
             margin-bottom: 2px;
         }
         .dh-hub-email {
             font-size: 0.75rem;
             color: #888;
             margin-bottom: 8px;
-            text-align: center;
             word-break: break-all;
         }
         .dh-rank-pill {
@@ -380,11 +465,12 @@ function inyectarEstilosAuthExtra() {
             color: #f3d266;
             font-size: 10px;
             font-weight: 800;
-            padding: 3px 12px;
+            padding: 3px 11px;
             border-radius: 20px;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.7px;
             text-transform: uppercase;
             margin-bottom: 14px;
+            display: inline-block;
         }
         .dh-hub-nav {
             width: 100%;
@@ -397,25 +483,27 @@ function inyectarEstilosAuthExtra() {
             width: 100%;
             padding: 9px 13px;
             border-radius: 9px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid transparent;
             color: #ccc;
             font-size: 13px;
             font-weight: 600;
             text-align: left;
             cursor: pointer;
-            transition: all 0.22s ease;
-        }
-        .dh-hub-tab-btn:hover {
-            background: rgba(212, 175, 55, 0.12);
-            color: #fff;
-            transform: translateX(3px);
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
         .dh-hub-tab-btn.active {
             background: linear-gradient(135deg, #d4af37, #b0882e);
             color: #111;
             font-weight: 800;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+        }
+        .dh-hub-session-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 10px;
         }
         .dh-hub-admin-link {
             width: 100%;
@@ -428,145 +516,122 @@ function inyectarEstilosAuthExtra() {
             font-weight: 800;
             text-decoration: none;
             text-align: center;
-            margin-top: 8px;
-            transition: 0.25s;
-        }
-        .dh-hub-admin-link:hover {
-            background: #d4af37;
-            color: #111;
         }
         .dh-hub-switch-btn {
             width: 100%;
-            margin-top: 8px;
             padding: 9px;
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.22);
             color: #f5f5f5;
             border-radius: 9px;
             font-weight: 700;
             font-size: 12.5px;
             cursor: pointer;
-            transition: 0.25s;
-        }
-        .dh-hub-switch-btn:hover {
-            border-color: #d4af37;
-            color: #f3d266;
-            background: rgba(212, 175, 55, 0.12);
         }
         .dh-hub-logout {
             width: 100%;
-            margin-top: 7px;
             padding: 9px;
-            background: rgba(231, 76, 60, 0.15);
+            background: rgba(231, 76, 60, 0.16);
             border: 1px solid rgba(231, 76, 60, 0.5);
             color: #ff6b6b;
             border-radius: 9px;
             font-weight: 700;
             font-size: 12.5px;
             cursor: pointer;
-            transition: 0.25s;
-        }
-        .dh-hub-logout:hover {
-            background: #e74c3c;
-            color: #fff;
         }
         .dh-hub-content {
             padding: 26px 32px;
             overflow-y: auto;
             scrollbar-width: none;
-            -ms-overflow-style: none;
             display: flex;
             flex-direction: column;
         }
         .dh-hub-pane {
             display: none;
-            animation: dhPaneFade 0.3s ease forwards;
+            animation: dhPaneFade 0.28s ease forwards;
         }
         .dh-hub-pane.active {
             display: block;
         }
         @keyframes dhPaneFade {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .dh-pane-header {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: 10px;
         }
         .dh-pane-header h2 {
             color: #f3d266;
-            font-size: 1.38rem;
+            font-size: 1.32rem;
             margin-bottom: 3px;
         }
         .dh-pane-header p {
             color: #888;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
         }
         .dh-kpi-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 18px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .dh-kpi-box {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(212, 175, 55, 0.22);
             border-radius: 12px;
-            padding: 13px;
+            padding: 12px 8px;
             text-align: center;
         }
         .dh-kpi-num {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 800;
             color: #d4af37;
             display: block;
         }
         .dh-kpi-label {
-            font-size: 11px;
+            font-size: 10.5px;
             color: #999;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .dh-vip-pass {
             background: linear-gradient(135deg, #1f1b10 0%, #111111 55%, #2b220c 100%);
             border: 1px solid #d4af37;
             border-radius: 14px;
-            padding: 16px 20px;
-            margin-bottom: 18px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 22px rgba(212, 175, 55, 0.12);
+            padding: 15px 18px;
+            margin-bottom: 16px;
         }
         .dh-vip-pass-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .dh-vip-pass-brand {
-            font-size: 11.5px;
-            letter-spacing: 2px;
+            font-size: 11px;
+            letter-spacing: 1.6px;
             color: #d4af37;
             font-weight: 800;
         }
         .dh-vip-pass-id {
             font-family: 'Courier New', monospace;
-            font-size: 11.5px;
+            font-size: 11px;
             color: #aaa;
         }
         .dh-vip-pass-bio {
             font-style: italic;
             color: #e0e0e0;
-            font-size: 13px;
-            margin-bottom: 10px;
+            font-size: 12.5px;
+            margin-bottom: 8px;
         }
         .dh-vip-pass-footer {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
             font-size: 11px;
             color: #f3d266;
-            font-weight: 600;
         }
         .dh-edit-grid {
             display: grid;
@@ -592,9 +657,6 @@ function inyectarEstilosAuthExtra() {
             font-size: 13.5px;
             outline: none;
         }
-        .dh-hub-input-group input:focus, .dh-hub-input-group select:focus {
-            border-color: #d4af37;
-        }
         .dh-btn-save-hub {
             padding: 11px 22px;
             background: linear-gradient(135deg, #d4af37, #b0882e);
@@ -604,62 +666,152 @@ function inyectarEstilosAuthExtra() {
             font-weight: 800;
             font-size: 13.5px;
             cursor: pointer;
-            transition: 0.25s;
-        }
-        .dh-btn-save-hub:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
         }
         .dh-order-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid #2c2c2c;
             border-radius: 12px;
-            padding: 13px 16px;
+            padding: 12px 14px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
             gap: 10px;
         }
 
-        /* MODAL CAMBIAR SESIÓN / SELECTOR DE CUENTAS ACTIVAS */
+        @media (max-width: 820px) {
+            .dh-hub-window {
+                display: block !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                max-height: 88dvh !important;
+                border-radius: 18px;
+            }
+            .dh-hub-sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+                padding: 16px 14px 12px;
+                overflow: visible !important;
+                align-items: stretch;
+            }
+            .dh-hub-user-header {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 12px;
+                padding-right: 58px;
+                margin-bottom: 10px;
+            }
+            .dh-hub-avatar-wrap {
+                width: 58px !important;
+                height: 58px !important;
+                margin-bottom: 0 !important;
+            }
+            .dh-hub-user-meta {
+                align-items: flex-start !important;
+                text-align: left !important;
+                min-width: 0;
+            }
+            .dh-hub-username {
+                font-size: 0.98rem !important;
+                text-align: left !important;
+            }
+            .dh-hub-email {
+                font-size: 0.72rem !important;
+                text-align: left !important;
+                margin-bottom: 4px !important;
+            }
+            .dh-rank-pill {
+                margin-bottom: 0 !important;
+                font-size: 9px !important;
+                padding: 2px 9px !important;
+            }
+            .dh-hub-session-actions {
+                flex-direction: row !important;
+                flex-wrap: wrap;
+                gap: 6px !important;
+                margin-top: 8px !important;
+                margin-bottom: 10px;
+            }
+            .dh-hub-admin-link,
+            .dh-hub-switch-btn,
+            .dh-hub-logout {
+                flex: 1;
+                min-width: 100px;
+                padding: 7px 8px !important;
+                font-size: 11px !important;
+                margin-top: 0 !important;
+            }
+            .dh-hub-nav {
+                flex-direction: row !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+                gap: 6px !important;
+                padding-bottom: 4px;
+            }
+            .dh-hub-tab-btn {
+                width: auto !important;
+                padding: 7px 12px !important;
+                font-size: 11.5px !important;
+                border-radius: 20px !important;
+                flex-shrink: 0;
+            }
+            .dh-hub-content {
+                padding: 18px 16px 28px !important;
+                overflow: visible !important;
+            }
+            .dh-edit-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .dh-kpi-box {
+                padding: 10px 4px !important;
+            }
+            .dh-kpi-num {
+                font-size: 1.2rem !important;
+            }
+            .dh-kpi-label {
+                font-size: 9.5px !important;
+            }
+            .dh-btn-save-hub {
+                width: 100%;
+            }
+        }
+
+        /* MODAL CAMBIAR SESIÓN */
         #modal-switch-account {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.82);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             z-index: 4500;
             align-items: center;
             justify-content: center;
+            padding: 14px;
         }
         #modal-switch-account.activo {
             display: flex;
         }
         .dh-switch-card {
-            width: 92%;
-            max-width: 440px;
+            width: 100%;
+            max-width: 430px;
             background: linear-gradient(155deg, #1a1a1a, #0e0e0e);
             border: 1px solid rgba(212, 175, 55, 0.5);
             border-radius: 20px;
-            padding: 28px 26px;
+            padding: 24px 20px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
             color: #f5f5f5;
             position: relative;
-            animation: dhHubPop 0.28s ease forwards;
         }
         .dh-account-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 12px 14px;
+            gap: 10px;
+            padding: 11px 12px;
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid #2e2e2e;
-            margin-bottom: 10px;
-            transition: 0.22s;
+            margin-bottom: 9px;
         }
         .dh-account-row.current {
             border-color: #d4af37;
@@ -668,14 +820,9 @@ function inyectarEstilosAuthExtra() {
         .dh-account-row.other {
             cursor: pointer;
         }
-        .dh-account-row.other:hover {
-            border-color: #d4af37;
-            background: rgba(212, 175, 55, 0.08);
-            transform: translateX(3px);
-        }
         .dh-acc-mini-avatar {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: #222;
             border: 1px solid #d4af37;
@@ -696,36 +843,12 @@ function inyectarEstilosAuthExtra() {
         .dh-badge-active-acc {
             background: #d4af37;
             color: #111;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 800;
-            padding: 3px 9px;
+            padding: 3px 8px;
             border-radius: 12px;
             text-transform: uppercase;
-        }
-
-        @media (max-width: 820px) {
-            .dh-hub-window {
-                grid-template-columns: 1fr;
-                max-height: 92vh;
-            }
-            .dh-hub-sidebar {
-                border-right: none;
-                border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-                padding: 16px;
-            }
-            .dh-hub-nav {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .dh-hub-tab-btn {
-                width: auto;
-                padding: 7px 11px;
-                font-size: 12px;
-            }
-            .dh-kpi-grid, .dh-edit-grid {
-                grid-template-columns: 1fr;
-            }
+            white-space: nowrap;
         }
     `;
     document.head.appendChild(style);
@@ -753,9 +876,9 @@ function mostrarNotificacionAuth(titulo, subtitulo, tipo = "success", callback =
                 border: 1px solid rgba(212, 175, 55, 0.55);
                 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.2);
                 border-radius: 18px;
-                padding: 34px 38px;
+                padding: 30px 28px;
                 text-align: center;
-                max-width: 380px;
+                max-width: 360px;
                 width: 90%;
                 color: #f5f5f5;
                 transform: scale(0.8) translateY(15px);
@@ -763,60 +886,54 @@ function mostrarNotificacionAuth(titulo, subtitulo, tipo = "success", callback =
             }
             .dh-toast-card.error {
                 border-color: rgba(231, 76, 60, 0.65);
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(231, 76, 60, 0.2);
             }
             .dh-icon-ring {
-                width: 68px;
-                height: 68px;
+                width: 60px;
+                height: 60px;
                 border-radius: 50%;
-                margin: 0 auto 18px;
+                margin: 0 auto 14px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 background: rgba(212, 175, 55, 0.12);
                 border: 2px solid #d4af37;
-                animation: dhPulseRing 1.4s ease infinite;
             }
             .dh-toast-card.error .dh-icon-ring {
                 background: rgba(231, 76, 60, 0.12);
                 border-color: #e74c3c;
             }
             .dh-check-svg {
-                width: 34px;
-                height: 34px;
+                width: 30px;
+                height: 30px;
                 stroke: #d4af37;
                 stroke-width: 3;
                 fill: none;
                 stroke-linecap: round;
                 stroke-linejoin: round;
-                stroke-dasharray: 50;
-                stroke-dashoffset: 50;
-                animation: dhDrawCheck 0.45s 0.18s ease forwards;
             }
             .dh-toast-card.error .dh-check-svg {
                 stroke: #e74c3c;
             }
             .dh-toast-title {
-                font-size: 1.35rem;
+                font-size: 1.25rem;
                 font-weight: 700;
                 color: #d4af37;
-                margin-bottom: 8px;
-                letter-spacing: 0.5px;
+                margin-bottom: 6px;
             }
             .dh-toast-card.error .dh-toast-title {
                 color: #ff6b6b;
             }
             .dh-toast-sub {
-                font-size: 0.92rem;
+                font-size: 0.88rem;
                 color: #bbb;
-                line-height: 1.5;
+                line-height: 1.45;
             }
             .dh-progress-bar {
                 height: 3px;
                 width: 100%;
                 background: rgba(255,255,255,0.08);
                 border-radius: 3px;
-                margin-top: 22px;
+                margin-top: 18px;
                 overflow: hidden;
             }
             .dh-progress-fill {
@@ -831,13 +948,7 @@ function mostrarNotificacionAuth(titulo, subtitulo, tipo = "success", callback =
             }
             @keyframes dhFadeIn { to { opacity: 1; } }
             @keyframes dhPopUp { to { transform: scale(1) translateY(0); } }
-            @keyframes dhDrawCheck { to { stroke-dashoffset: 0; } }
             @keyframes dhShrink { to { transform: scaleX(0); } }
-            @keyframes dhPulseRing {
-                0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-                70% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-            }
         `;
         document.head.appendChild(style);
     }
@@ -863,7 +974,6 @@ function mostrarNotificacionAuth(titulo, subtitulo, tipo = "success", callback =
     document.body.appendChild(overlay);
 
     setTimeout(() => {
-        overlay.style.transition = "opacity 0.25s ease";
         overlay.style.opacity = "0";
         setTimeout(() => {
             overlay.remove();
@@ -880,8 +990,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const navbar = document.querySelector(".navbar");
 
     if (menuBtn && navbar) {
-        menuBtn.addEventListener("click", () => {
-            navbar.classList.toggle("active");
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const abierto = navbar.classList.toggle("active");
+            menuBtn.textContent = abierto ? "✕" : "☰";
+        });
+
+        document.addEventListener("click", (e) => {
+            if (navbar.classList.contains("active") && !navbar.contains(e.target) && !menuBtn.contains(e.target)) {
+                navbar.classList.remove("active");
+                menuBtn.textContent = "☰";
+            }
         });
     }
 
@@ -892,7 +1011,7 @@ document.addEventListener("DOMContentLoaded", () => {
         profileBtn.className = "user-btn";
         profileBtn.title = "Mi Cuenta";
         profileBtn.innerHTML = "Perfil";
-        profileBtn.style.fontSize = "12px";
+        profileBtn.style.fontSize = "11px";
         profileBtn.style.fontWeight = "700";
         iconsContainer.insertBefore(profileBtn, iconsContainer.firstChild);
     }
@@ -902,7 +1021,7 @@ document.addEventListener("DOMContentLoaded", () => {
         themeBtn.id = "btn-tema-toggle";
         themeBtn.className = "theme-toggle-btn";
         themeBtn.title = "Cambiar Tema";
-        themeBtn.style.fontSize = "11px";
+        themeBtn.style.fontSize = "10.5px";
         themeBtn.style.fontWeight = "700";
 
         const isDark = document.body.classList.contains("dark-mode");
@@ -922,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("modal-auth")) {
             const authHTML = `
                 <div id="modal-auth" class="modal-overlay">
-                    <div class="modal-container auth-modal-container" style="height:auto; max-height:92vh; overflow-y:auto;">
+                    <div class="modal-container auth-modal-container" style="height:auto; max-height:90dvh; overflow-y:auto;">
                         <button id="cerrar-auth" class="modal-cerrar-btn">Cerrar</button>
                         <div class="auth-tabs">
                             <button id="tab-login" class="auth-tab activo">Iniciar Sesión</button>
@@ -997,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const cardColors = ['card-dark', 'card-gold', 'card-blue', 'card-red', 'card-green'];
             const colorLabels = ['Clásica', 'Gold', 'Royal', 'Crimson', 'Emerald'];
             const colorPicker = cardColors.map((c, i) =>
-                `<button type="button" class="card-color-pick" data-color="${c}" style="width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:${i === 0 ? '#222' : i === 1 ? '#3a2a00' : i === 2 ? '#0a0e2e' : i === 3 ? '#5c0000' : '#004515'};transition:all 0.2s;" title="${colorLabels[i]}"></button>`
+                `<button type="button" class="card-color-pick" data-color="${c}" style="width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:${i === 0 ? '#222' : i === 1 ? '#3a2a00' : i === 2 ? '#0a0e2e' : i === 3 ? '#5c0000' : '#004515'};" title="${colorLabels[i]}"></button>`
             ).join('');
 
             const hubHTML = `
@@ -1006,27 +1125,33 @@ document.addEventListener("DOMContentLoaded", () => {
                         <button id="cerrar-profile" class="dh-hub-close">Cerrar</button>
 
                         <aside class="dh-hub-sidebar">
-                            <div class="dh-hub-avatar-wrap" id="profileAvatarCircle" title="Clic para cambiar foto de perfil">
-                                <div class="dh-hub-avatar-inner" id="profileAvatarEmoji">Avatar</div>
-                                <span class="dh-hub-cam-badge">Editar</span>
-                                <input type="file" id="profileAvatarInput" accept="image/*" style="display:none;">
+                            <div class="dh-hub-user-header">
+                                <div class="dh-hub-avatar-wrap" id="profileAvatarCircle" title="Clic para cambiar foto de perfil">
+                                    <div class="dh-hub-avatar-inner" id="profileAvatarEmoji">Avatar</div>
+                                    <span class="dh-hub-cam-badge">Editar</span>
+                                    <input type="file" id="profileAvatarInput" accept="image/*" style="display:none;">
+                                </div>
+
+                                <div class="dh-hub-user-meta">
+                                    <div class="dh-hub-username" id="profileUserVal">Cliente</div>
+                                    <div class="dh-hub-email" id="profileEmailVal">correo@ejemplo.com</div>
+                                    <div class="dh-rank-pill" id="dhMemberRank">Bronze Collector</div>
+                                </div>
                             </div>
 
-                            <div class="dh-hub-username" id="profileUserVal">Cliente</div>
-                            <div class="dh-hub-email" id="profileEmailVal">correo@ejemplo.com</div>
-                            <div class="dh-rank-pill" id="dhMemberRank">Bronze Collector</div>
+                            <div class="dh-hub-session-actions">
+                                <a href="control.html" id="btn-admin-panel-profile" class="dh-hub-admin-link" style="display:none;">Panel Admin</a>
+                                <button type="button" id="btn-switch-session" class="dh-hub-switch-btn">Cambiar Sesión</button>
+                                <button type="button" id="btn-logout" class="dh-hub-logout">Cerrar Sesión</button>
+                            </div>
 
                             <nav class="dh-hub-nav">
                                 <button class="dh-hub-tab-btn active" data-hub-tab="resumen">Resumen y Pase VIP</button>
                                 <button class="dh-hub-tab-btn" data-hub-tab="favoritos">Mis Favoritos</button>
-                                <button class="dh-hub-tab-btn" data-hub-tab="billetera">Billetera y Tarjetas</button>
+                                <button class="dh-hub-tab-btn" data-hub-tab="billetera">Billetera</button>
                                 <button class="dh-hub-tab-btn" data-hub-tab="pedidos">Mis Pedidos</button>
                                 <button class="dh-hub-tab-btn" data-hub-tab="seguridad">Seguridad</button>
                             </nav>
-
-                            <a href="control.html" id="btn-admin-panel-profile" class="dh-hub-admin-link" style="display:none;">Abrir Panel Admin</a>
-                            <button type="button" id="btn-switch-session" class="dh-hub-switch-btn">Cambiar Sesión</button>
-                            <button type="button" id="btn-logout" class="dh-hub-logout">Cerrar Sesión</button>
                         </aside>
 
                         <section class="dh-hub-content">
@@ -1058,7 +1183,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     </div>
                                     <div class="dh-vip-pass-bio" id="vip-pass-bio">"Coleccionando estilo y actitud en cada gorra."</div>
                                     <div class="dh-vip-pass-footer">
-                                        <span>Estilo preferido: <strong id="vip-pass-style">Snapback Clásica</strong></span>
+                                        <span>Estilo: <strong id="vip-pass-style">Snapback Clásica</strong></span>
                                         <span>Estado: ACTIVO</span>
                                     </div>
                                 </div>
@@ -1090,7 +1215,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <h2>Mis Favoritos</h2>
                                     <p>Tus gorras guardadas listas para añadir al carrito.</p>
                                 </div>
-                                <div id="profile-favoritos-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:18px;"></div>
+                                <div id="profile-favoritos-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:14px;"></div>
                             </div>
 
                             <div class="dh-hub-pane" id="hub-pane-billetera">
@@ -1099,8 +1224,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <p>Guarda tarjetas aquí para seleccionarlas con un clic al pagar.</p>
                                 </div>
 
-                                <div style="display:flex; align-items:center; justify-content:center; gap:24px; margin-bottom:20px; flex-wrap:wrap;">
-                                    <div id="live-card-preview" class="flip-card card-dark" style="pointer-events:none; transform: scale(0.88);">
+                                <div style="display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:18px; flex-wrap:wrap;">
+                                    <div id="live-card-preview" class="flip-card card-dark" style="pointer-events:none; transform: scale(0.85);">
                                         <div class="flip-card-inner" id="live-card-inner">
                                             <div class="flip-card-front">
                                                 <p class="heading_8264">MASTERCARD</p>
@@ -1125,7 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <p style="font-size:12px;color:#888;margin-bottom:8px;text-align:center;">Color de tarjeta:</p>
+                                        <p style="font-size:11.5px;color:#888;margin-bottom:8px;text-align:center;">Color de tarjeta:</p>
                                         <div style="display:flex;gap:8px;justify-content:center;">${colorPicker}</div>
                                     </div>
                                 </div>
@@ -1154,7 +1279,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <button type="button" id="btn-guardar-tarjeta" class="dh-btn-save-hub" style="width:100%;">Guardar Tarjeta</button>
                                 </div>
 
-                                <div id="saved-cards-list" style="margin-top:20px;"></div>
+                                <div id="saved-cards-list" style="margin-top:18px;"></div>
                             </div>
 
                             <div class="dh-hub-pane" id="hub-pane-pedidos">
@@ -1163,8 +1288,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <p>Tus últimas compras realizadas en Diamond Hats.</p>
                                 </div>
                                 <div id="hub-pedidos-lista"></div>
-                                <div style="margin-top:16px; text-align:right;">
-                                    <a href="ayuda.html" class="dh-btn-save-hub" style="text-decoration:none; display:inline-block;">Ir al Rastreo Completo en Ayuda</a>
+                                <div style="margin-top:16px;">
+                                    <a href="ayuda.html" class="dh-btn-save-hub" style="text-decoration:none; display:inline-block; text-align:center;">Ir al Rastreo Completo en Ayuda</a>
                                 </div>
                             </div>
 
@@ -1197,14 +1322,13 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.insertAdjacentHTML('beforeend', hubHTML);
         }
 
-        // MODAL ALTERNADOR DE SESIONES (SIRVE TANTO CON SESIÓN ACTIVA COMO AL VOLVER A ENTRAR)
         if (!document.getElementById("modal-switch-account")) {
             const switchHTML = `
                 <div id="modal-switch-account">
                     <div class="dh-switch-card">
                         <button id="cerrar-switch-account" class="dh-hub-close">Cerrar</button>
-                        <h2 id="dh-switch-title" style="color:#f3d266; font-size:1.3rem; margin-bottom:4px;">Cambiar Sesión</h2>
-                        <p id="dh-switch-sub" style="color:#888; font-size:13px; margin-bottom:18px;">Alterna rápidamente entre tus cuentas o agrega una nueva.</p>
+                        <h2 id="dh-switch-title" style="color:#f3d266; font-size:1.25rem; margin-bottom:4px;">Cambiar Sesión</h2>
+                        <p id="dh-switch-sub" style="color:#888; font-size:12.5px; margin-bottom:16px;">Alterna rápidamente entre tus cuentas o agrega una nueva.</p>
 
                         <div id="dh-switch-accounts-list"></div>
 
@@ -1289,7 +1413,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const avatarActual = estaLogueadoAhora ? (localStorage.getItem("avatar_" + auth.currentUser.email) || "") : "";
 
         const todasLasCuentas = obtenerCuentasGuardadas();
-        // Solo mostrar en el alternador las cuentas que NO han cerrado sesión
         const cuentasActivas = todasLasCuentas.filter(c => c.sesionAbierta !== false && c.email.toLowerCase() !== emailActual);
 
         if (titleEl) {
@@ -1305,35 +1428,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (estaLogueadoAhora) {
             html += `
-                <div style="font-size:11px; color:#d4af37; text-transform:uppercase; font-weight:700; margin-bottom:6px; letter-spacing:0.6px;">Perfil en Uso</div>
+                <div style="font-size:10.5px; color:#d4af37; text-transform:uppercase; font-weight:700; margin-bottom:6px; letter-spacing:0.6px;">Perfil en Uso</div>
                 <div class="dh-account-row current">
-                    <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                         <div class="dh-acc-mini-avatar">
                             ${avatarActual ? `<img src="${avatarActual}" alt="Avatar">` : usernameActual.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                            <strong style="color:#fff; font-size:14px; display:block;">${usernameActual}</strong>
-                            <span style="color:#aaa; font-size:12px;">${emailActual}</span>
+                        <div style="min-width:0;">
+                            <strong style="color:#fff; font-size:13.5px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${usernameActual}</strong>
+                            <span style="color:#aaa; font-size:11.5px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${emailActual}</span>
                         </div>
                     </div>
-                    <span class="dh-badge-active-acc">Sesión Actual</span>
+                    <span class="dh-badge-active-acc">Actual</span>
                 </div>
             `;
         }
 
         if (cuentasActivas.length > 0) {
-            html += `<div style="font-size:11px; color:#888; text-transform:uppercase; font-weight:700; margin:14px 0 6px; letter-spacing:0.6px;">${estaLogueadoAhora ? 'Otras Sesiones Abiertas' : 'Selecciona una Cuenta'}</div>`;
+            html += `<div style="font-size:10.5px; color:#888; text-transform:uppercase; font-weight:700; margin:12px 0 6px; letter-spacing:0.6px;">${estaLogueadoAhora ? 'Otras Sesiones Abiertas' : 'Selecciona una Cuenta'}</div>`;
             cuentasActivas.forEach((acc) => {
                 const av = acc.avatar || localStorage.getItem("avatar_" + acc.email) || "";
                 html += `
                     <div class="dh-account-row other" onclick="cambiarACuentaGuardada('${acc.email}')">
-                        <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                             <div class="dh-acc-mini-avatar">
                                 ${av ? `<img src="${av}" alt="Avatar">` : (acc.username || "U").charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                                <strong style="color:#f5f5f5; font-size:14px; display:block;">${acc.username}</strong>
-                                <span style="color:#888; font-size:12px;">${acc.email}</span>
+                            <div style="min-width:0;">
+                                <strong style="color:#f5f5f5; font-size:13.5px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${acc.username}</strong>
+                                <span style="color:#888; font-size:11.5px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${acc.email}</span>
                             </div>
                         </div>
                         <span style="color:#d4af37; font-size:12px; font-weight:700;">${estaLogueadoAhora ? 'Alternar' : 'Entrar'}</span>
@@ -1366,13 +1489,12 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {
                 inputLoginEmail.value = cuenta.email;
                 modalAuth.classList.add("activo");
-                mostrarNotificacionAuth("Verifica tu Contraseña", "Ingresa tu contraseña una vez para activar el acceso directo en esta cuenta.", "error");
+                mostrarNotificacionAuth("Verifica tu Contraseña", "Ingresa tu contraseña una vez para activar el acceso directo.", "error");
             }
         } else {
-            // Solo ocurrirá una única vez si esa cuenta fue iniciada antes de esta actualización
             inputLoginEmail.value = cuenta.email;
             modalAuth.classList.add("activo");
-            mostrarNotificacionAuth("Activar Acceso Directo", "Ingresa la contraseña de esta cuenta una sola vez para guardarla en tus sesiones abiertas.");
+            mostrarNotificacionAuth("Activar Acceso Directo", "Ingresa la contraseña una sola vez para guardarla en tus sesiones abiertas.");
         }
     };
 
@@ -1455,14 +1577,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cont) return;
         const historial = JSON.parse(localStorage.getItem(getKeyHistorial()) || "[]");
         if (historial.length === 0) {
-            cont.innerHTML = `<p style="color:#888; text-align:center; padding:30px 0;">Aún no has realizado compras. Explora nuestro catálogo y estrena tu primera gorra.</p>`;
+            cont.innerHTML = `<p style="color:#888; text-align:center; padding:25px 0;">Aún no has realizado compras. Explora nuestro catálogo y estrena tu primera gorra.</p>`;
             return;
         }
         cont.innerHTML = historial.slice(0, 5).map(p => `
             <div class="dh-order-card">
                 <div>
                     <strong style="color:#f3d266;">Orden ${p.ticketId}</strong>
-                    <div style="font-size:12px; color:#888;">${p.date}</div>
+                    <div style="font-size:11.5px; color:#888;">${p.date}</div>
                 </div>
                 <div style="text-align:right;">
                     <strong style="color:#fff;">${p.pagoConPuntos ? p.totalVal : '$' + p.totalVal + ' MXN'}</strong>
@@ -1533,6 +1655,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let navAdminBtn = document.getElementById("nav-btn-admin");
         const esPaginaGorras = window.location.pathname.toLowerCase().includes("gorras.html");
 
+        iniciarEscuchaNotificacionesContacto(user);
+
         if (user) {
             localStorage.setItem("token", user.uid);
             localStorage.setItem("userEmail", user.email);
@@ -1584,12 +1708,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (user.email === ADMIN_EMAIL) {
                 if (btnAdminPerfil) btnAdminPerfil.style.display = "block";
-                if (esPaginaGorras && navbar && !navAdminBtn) {
+                if (navbar && !navAdminBtn) {
                     navAdminBtn = document.createElement("a");
                     navAdminBtn.id = "nav-btn-admin";
                     navAdminBtn.href = "control.html";
                     navAdminBtn.textContent = "Panel Admin";
-                    navAdminBtn.style.cssText = "color: #d4af37; font-weight: bold; border: 1px solid #d4af37; padding: 5px 12px; border-radius: 6px; margin-left: 10px;";
+                    if (!esPaginaGorras) {
+                        navAdminBtn.style.color = "#d4af37";
+                    } else {
+                        navAdminBtn.style.cssText = "color: #d4af37; font-weight: bold; border: 1px solid #d4af37; padding: 5px 12px; border-radius: 6px;";
+                    }
                     navbar.appendChild(navAdminBtn);
                 }
             } else {
@@ -1606,9 +1734,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Clic en el botón Perfil de la barra superior:
-    // - Si hay sesión activa -> abre el Hub VIP
-    // - Si NO hay sesión activa -> si existen otras cuentas abiertas muestra el selector; si no, abre Login/Registro
     if (btnPerfilUsuario) {
         btnPerfilUsuario.addEventListener("click", () => {
             if (auth.currentUser) {
@@ -1981,7 +2106,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Cerrar sesión SOLO de la cuenta actual (mantiene abiertas las demás cuentas)
     if (btnLogout) {
         btnLogout.addEventListener("click", async () => {
             const correoQueCierra = localStorage.getItem("userEmail");
@@ -2060,7 +2184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btn = document.getElementById("btn-perfil-usuario");
         if (!btn) return;
         if (base64) {
-            btn.innerHTML = `<img src="${base64}" style="width:36px;height:36px;object-fit:cover;border-radius:50%;border:2px solid #cca142;vertical-align:middle;">`;
+            btn.innerHTML = `<img src="${base64}" style="width:32px;height:32px;object-fit:cover;border-radius:50%;border:2px solid #cca142;vertical-align:middle;">`;
         } else {
             btn.innerHTML = "Perfil";
         }

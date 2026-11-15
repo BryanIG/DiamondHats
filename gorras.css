@@ -12,6 +12,7 @@ html {
 body {
     background: #111111;
     color: white;
+    overflow-x: hidden;
 }
 
 /* ==========================================
@@ -38,11 +39,11 @@ body {
     padding: 0 50px;
     max-width: 1440px;
     margin: 0 auto;
-    height: 80px;
+    height: 76px;
 }
 
 .logo img {
-    height: 65px;
+    height: 60px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -51,28 +52,31 @@ body {
 .icons {
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
 .carrito-btn {
     background: #111111;
     color: #ffffff;
-    border: none;
-    width: 46px;
-    height: 46px;
-    font-size: 18px;
+    border: 1.5px solid rgba(204, 161, 66, 0.6);
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    flex-shrink: 0;
 }
 
 .carrito-btn:hover {
     background: #252525;
-    transform: translateY(-2px);
+    border-color: #cca142;
+    transform: translateY(-2px) scale(1.05);
 }
 
 #contador {
@@ -81,7 +85,7 @@ body {
     right: -5px;
     background: #ff3b30;
     color: #ffffff;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: bold;
     min-width: 18px;
     height: 18px;
@@ -238,18 +242,17 @@ body {
     color: #111;
 }
 
-/* Botón hamburguesa flotante para móvil */
 .mobile-cat-btn {
     display: none;
     align-items: center;
     gap: 8px;
-    margin: 16px 20px 0 20px;
-    padding: 11px 18px;
+    margin: 14px 16px 0 16px;
+    padding: 10px 16px;
     background: #1c1c1c;
     color: #cca142;
     border: 1px solid rgba(204, 161, 66, 0.5);
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -268,7 +271,6 @@ body {
     display: block;
 }
 
-/* Contenido Principal derecho alineado exactamente al ancho disponible */
 .catalogo-main {
     flex: 1;
     width: calc(100% - 265px);
@@ -343,7 +345,7 @@ body {
 }
 
 /* ==========================================
-   TARJETAS DE PRODUCTOS (4 EXACTAS EN PANTALLA)
+   TARJETAS DE PRODUCTOS
    ========================================== */
 .card {
     flex: 0 0 calc((100% - 54px) / 4);
@@ -428,7 +430,6 @@ body {
     background: #e0b653;
 }
 
-/* Flechas Carrusel dentro del borde */
 .carrusel-btn {
     position: absolute;
     top: 50%;
@@ -515,7 +516,7 @@ body {
 }
 
 /* ==========================================
-   MODALES, CARRITO, OFERTAS Y FAVORITOS
+   MODALES, OFERTAS Y FAVORITOS
    ========================================== */
 .modal-overlay {
     position: fixed;
@@ -748,91 +749,6 @@ body {
     opacity: 1;
 }
 
-#carrito {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 350px;
-    max-width: 100vw;
-    height: 100vh;
-    background: #1e1e1e;
-    box-shadow: -5px 0 20px rgba(0, 0, 0, .5);
-    z-index: 2500;
-    transition: .4s;
-    display: flex;
-    flex-direction: column;
-}
-
-#carrito.activo {
-    right: 0;
-}
-
-.carrito-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #333;
-}
-
-#cerrar-carrito {
-    border: none;
-    background: none;
-    font-size: 20px;
-    color: white;
-    cursor: pointer;
-}
-
-#productos-carrito {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.producto-carrito img {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-}
-
-.acciones {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.acciones button {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: #fff;
-    color: #111;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.acciones .eliminar {
-    background: #b00020;
-    color: white;
-}
-
-.carrito-footer {
-    padding: 20px;
-    border-top: 1px solid #333;
-}
-
-.finalizar {
-    margin-top: 15px;
-    width: 100%;
-    padding: 15px;
-    background: #fff;
-    color: #111;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-}
-
 .card-oferta {
     position: relative;
 }
@@ -931,11 +847,10 @@ body {
     background: transparent;
     border: 2px solid #cca142;
     color: #cca142;
-    font-size: 20px;
-    width: 46px;
-    height: 46px;
+    font-size: 18px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    margin-right: 15px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -986,30 +901,62 @@ body {
 
 @media (max-width: 900px) {
     .header-container {
-        padding: 12px 20px;
-        height: 70px;
-    }
-
-    .logo img {
-        height: 50px;
-    }
-
-    .navbar {
-        display: none;
-        border-top: 1px solid #eee;
+        height: 58px !important;
+        padding: 0 12px !important;
+        display: grid !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        align-items: center !important;
+        gap: 6px !important;
     }
 
     .menu-btn {
-        display: block;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        order: 1 !important;
+        justify-self: start !important;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        border: 1.5px solid rgba(204, 161, 66, 0.6);
+        background: rgba(204, 161, 66, 0.08);
+        color: #cca142 !important;
+        font-size: 17px !important;
     }
 
-    .navbar.active {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 0;
-        background: #fff;
+    .logo {
+        order: 2 !important;
+        justify-self: center !important;
+    }
+
+    .logo img {
+        height: 36px !important;
+        width: auto !important;
+    }
+
+    .icons {
+        order: 3 !important;
+        justify-self: end !important;
+        gap: 6px !important;
+    }
+
+    .theme-toggle-btn {
+        height: 28px !important;
+        padding: 0 7px !important;
+        font-size: 9.5px !important;
+    }
+
+    .user-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 10px !important;
+        margin-right: 0 !important;
+    }
+
+    .carrito-btn {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 14px !important;
     }
 
     .mobile-cat-btn {
@@ -1020,7 +967,7 @@ body {
         position: fixed;
         top: 0;
         left: 0;
-        height: 100vh;
+        height: 100dvh;
         width: 280px;
         transform: translateX(-105%);
         z-index: 1800;
@@ -1040,11 +987,11 @@ body {
     .catalogo-main {
         width: 100%;
         max-width: 100%;
-        padding: 20px;
+        padding: 16px;
     }
 
     .card {
-        flex: 0 0 250px;
+        flex: 0 0 245px;
     }
 
     .modal-content {

@@ -2,40 +2,54 @@ import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// Limpiar datos globales viejos compartidos de pruebas anteriores
 localStorage.removeItem("historial_compras");
 
 function obtenerKeyHistorialCuenta(email) {
     return "historial_compras_" + (email || "guest").toLowerCase();
 }
 
+let historialGlobalCuenta = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     const authWall = document.getElementById("ayuda-auth-wall");
     const dashboard = document.getElementById("ayuda-dashboard");
     const userNameSpan = document.getElementById("ayuda-user-name");
+    const selectorRastreo = document.getElementById("selector-pedido-rastreo");
 
-    const timelineHTML = `
-        <div class="timeline-container">
-            <div class="timeline-line">
-                <div class="timeline-fill" id="timeline-fill-bar" style="width: 0%;"></div>
+    function construirTimelineHTML(pedido) {
+        const totalTexto = pedido.pagoConPuntos ? pedido.totalVal : `$${pedido.totalVal} MXN`;
+        return `
+            <div class="dh-tracking-box">
+                <div class="dh-track-meta">
+                    <span>Orden: <strong>#${pedido.ticketId}</strong></span>
+                    <span>Total: <strong>${totalTexto}</strong></span>
+                </div>
+
+                <div class="timeline-line">
+                    <div class="timeline-fill" id="timeline-fill-bar" style="width: 0%;"></div>
+                    
+                    <div class="timeline-step" id="step-1">
+                        1
+                        <span class="timeline-label">Confirmado</span>
+                    </div>
+                    <div class="timeline-step" id="step-2">
+                        2
+                        <span class="timeline-label">Empacado</span>
+                    </div>
+                    <div class="timeline-step" id="step-3">
+                        3
+                        <span class="timeline-label">En Camino</span>
+                    </div>
+                    <div class="timeline-step" id="step-4">
+                        4
+                        <span class="timeline-label">Entregado</span>
+                    </div>
+                </div>
                 
-                <div class="timeline-step" id="step-1">
-                    <span class="timeline-label">Confirmado</span>
-                </div>
-                <div class="timeline-step" id="step-2">
-                    <span class="timeline-label">Empacado</span>
-                </div>
-                <div class="timeline-step" id="step-3">
-                    <span class="timeline-label">En Camino</span>
-                </div>
-                <div class="timeline-step" id="step-4">
-                    <span class="timeline-label">Entregado</span>
-                </div>
+                <div id="timeline-status-text" class="dh-status-banner"></div>
             </div>
-            
-            <p id="timeline-status-text" style="text-align:center; margin-top:40px; color:#cca142; font-weight:600; font-size:14px;"></p>
-        </div>
-    `;
+        `;
+    }
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -48,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
         dashboard.style.display = "block";
         userNameSpan.textContent = localStorage.getItem("username") || user.email.split("@")[0];
 
-        // Sincronizar pedidos propios desde Firestore si existen
         let historialCuenta = JSON.parse(localStorage.getItem(obtenerKeyHistorialCuenta(user.email)) || "[]");
         try {
             const snap = await getDoc(doc(db, "usuarios", user.uid));
@@ -56,49 +69,91 @@ document.addEventListener("DOMContentLoaded", () => {
                 historialCuenta = snap.data().pedidos;
                 localStorage.setItem(obtenerKeyHistorialCuenta(user.email), JSON.stringify(historialCuenta));
             }
-        } catch (e) {
-            // Usar respaldo local de la cuenta
-        }
+        } catch (e) { }
 
+        historialGlobalCuenta = historialCuenta;
         cargarHistorial(historialCuenta);
     });
 
+    if (selectorRastreo) {
+        selectorRastreo.addEventListener("change", () => {
+            const idx = Number(selectorRastreo.value) || 0;
+            const pedidoElegido = historialGlobalCuenta[idx];
+            if (pedidoElegido) {
+                mostrarRastreoDePedido(pedidoElegido);
+            }
+        });
+    }
+
+    function mostrarRastreoDePedido(pedido) {
+        const tContainer = document.getElementById("timeline-container-render");
+        if (!tContainer) return;
+        tContainer.innerHTML = construirTimelineHTML(pedido);
+        setTimeout(() => animarTimeline(pedido.estado_envio || "Confirmado"), 80);
+    }
+
     function cargarHistorial(historial) {
         const tabla = document.getElementById("tabla-historial");
+        const mobileCards = document.getElementById("mobile-historial-cards");
         const noMsg = document.getElementById("no-history-msg");
         const tContainer = document.getElementById("timeline-container-render");
+        const badgeOrdenes = document.getElementById("total-compras-badge");
+
+        if (badgeOrdenes) {
+            badgeOrdenes.textContent = `${historial.length} ${historial.length === 1 ? 'orden' : 'órdenes'}`;
+        }
 
         if (!historial || historial.length === 0) {
             tabla.innerHTML = "";
+            if (mobileCards) mobileCards.innerHTML = "";
+            if (selectorRastreo) selectorRastreo.style.display = "none";
             noMsg.style.display = "block";
-            tContainer.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">No tienes pedidos activos. Explora el catálogo.</p>';
+            tContainer.innerHTML = '<p style="color:#888; text-align:center; padding:25px 10px;">No tienes pedidos activos. Explora el catálogo y realiza tu primera compra.</p>';
             return;
         }
 
         noMsg.style.display = "none";
         tabla.innerHTML = "";
+        if (mobileCards) mobileCards.innerHTML = "";
+
+        if (selectorRastreo) {
+            selectorRastreo.style.display = "inline-block";
+            selectorRastreo.innerHTML = historial.map((p, idx) =>
+                `<option value="${idx}">#${p.ticketId}</option>`
+            ).join("");
+        }
 
         historial.forEach((ticket, idx) => {
             const totalTexto = ticket.pagoConPuntos ? ticket.totalVal : `$${ticket.totalVal} MXN`;
+
+            // Fila para Escritorio
             tabla.innerHTML += `
                 <tr>
-                    <td>#${ticket.ticketId}</td>
+                    <td><strong>#${ticket.ticketId}</strong></td>
                     <td>${ticket.date}</td>
-                    <td>${totalTexto}</td>
+                    <td><strong style="color:#cca142;">${totalTexto}</strong></td>
                     <td>
                         <button class="btn-descargar-mini" onclick="descargarTicket(${idx})">Recuperar</button>
                     </td>
                 </tr>
             `;
+
+            // Tarjeta para Móvil
+            if (mobileCards) {
+                mobileCards.innerHTML += `
+                    <div class="dh-history-mobile-card">
+                        <div style="min-width:0;">
+                            <strong style="color:#cca142; font-size:13.5px; display:block;">#${ticket.ticketId}</strong>
+                            <span style="font-size:11.5px; color:#888; display:block; margin:2px 0;">${ticket.date}</span>
+                            <strong style="font-size:13.5px;">${totalTexto}</strong>
+                        </div>
+                        <button class="btn-descargar-mini" onclick="descargarTicket(${idx})" style="flex-shrink:0;">Recibo PDF</button>
+                    </div>
+                `;
+            }
         });
 
-        const ultimoPedido = historial[0];
-        if (ultimoPedido && ultimoPedido.en_progreso) {
-            tContainer.innerHTML = timelineHTML;
-            setTimeout(() => animarTimeline(ultimoPedido.estado_envio), 100);
-        } else {
-            tContainer.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">No hay pedidos en tránsito actualmente.</p>';
-        }
+        mostrarRastreoDePedido(historial[0]);
     }
 
     function animarTimeline(estado) {
@@ -109,8 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const step4 = document.getElementById("step-4");
         const text = document.getElementById("timeline-status-text");
 
+        if (!fillBar || !text) return;
+
         let width = "0%";
-        [step1, step2, step3, step4].forEach(s => s.classList.remove("active", "completed"));
+        [step1, step2, step3, step4].forEach(s => s?.classList.remove("active", "completed"));
 
         setTimeout(() => {
             if (estado === "Confirmado") {
@@ -118,12 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 step1.classList.add("active");
                 text.textContent = "Tu pago ha sido validado. Preparando tu orden...";
             } else if (estado === "Empacado") {
-                width = "33%";
+                width = "35%";
                 step1.classList.add("completed");
                 step2.classList.add("active");
                 text.textContent = "Estamos empacando tus gorras con máxima protección.";
             } else if (estado === "En Camino") {
-                width = "66%";
+                width = "68%";
                 step1.classList.add("completed");
                 step2.classList.add("completed");
                 step3.classList.add("active");
@@ -137,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 text.textContent = "Paquete entregado. Disfruta tus Diamond Hats.";
             }
             fillBar.style.width = width;
-        }, 300);
+        }, 200);
     }
 });
 

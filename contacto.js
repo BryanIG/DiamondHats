@@ -15,6 +15,7 @@ const ADMIN_EMAIL = "admin@diamondhats.com";
 let usuarioSesion = null;
 let pruebaUsuarioBase64 = "";
 let ticketSeleccionadoAdminId = null;
+let chatMovilAbierto = false;
 let ticketACerrarId = null;
 let todasLasQuejas = [];
 
@@ -63,20 +64,21 @@ function inyectarModalCierreReclamo() {
             inset: 0;
             background: rgba(0, 0, 0, 0.78);
             backdrop-filter: blur(8px);
-            z-index: 9999;
+            z-index: 10050;
             align-items: center;
             justify-content: center;
+            padding: 16px;
         }
         #modal-cerrar-reclamo-dh.activo {
             display: flex;
         }
         .dh-close-claim-card {
-            width: 92%;
+            width: 100%;
             max-width: 470px;
             background: linear-gradient(155deg, #1a1a1a, #0e0e0e);
             border: 1px solid rgba(212, 175, 55, 0.55);
             border-radius: 20px;
-            padding: 30px 28px;
+            padding: 26px 22px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.15);
             color: #f5f5f5;
             animation: dhPopClaim 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
@@ -137,10 +139,6 @@ function inyectarModalCierreReclamo() {
             font-size: 13.5px;
             cursor: pointer;
         }
-        .dh-claim-btn-cancel:hover {
-            background: #353535;
-            color: #fff;
-        }
         .dh-claim-btn-confirm {
             flex: 1.3;
             padding: 12px;
@@ -153,17 +151,13 @@ function inyectarModalCierreReclamo() {
             cursor: pointer;
             box-shadow: 0 6px 18px rgba(231, 76, 60, 0.35);
         }
-        .dh-claim-btn-confirm:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 22px rgba(231, 76, 60, 0.5);
-        }
     `;
     document.head.appendChild(style);
 
     const modalHTML = `
         <div id="modal-cerrar-reclamo-dh">
             <div class="dh-close-claim-card">
-                <h2 style="color:#f3d266; font-size:1.35rem; margin-bottom:6px;">Finalizar y Cerrar Reclamo</h2>
+                <h2 style="color:#f3d266; font-size:1.3rem; margin-bottom:6px;">Finalizar y Cerrar Reclamo</h2>
                 <p style="color:#aaa; font-size:13px; line-height:1.5; margin-bottom:16px;">
                     Indica el motivo de cierre. El cliente recibirá esta notificación y ya no podrá enviar más respuestas en este hilo.
                 </p>
@@ -219,6 +213,8 @@ function inyectarModalCierreReclamo() {
             await updateDoc(doc(db, "quejas", ticketACerrarId), {
                 estado: "cerrado",
                 motivoCierre: motivo,
+                leidoPorAdmin: true,
+                tieneMensajeAdminPendiente: false,
                 timestamp: Date.now()
             });
             modalEl.classList.remove("activo");
@@ -247,6 +243,13 @@ window.seleccionarMotivoRapido = function (texto) {
 
 document.addEventListener("DOMContentLoaded", () => {
     inyectarModalCierreReclamo();
+
+    const observerTema = new MutationObserver(() => {
+        if (usuarioSesion && usuarioSesion.email === ADMIN_EMAIL) {
+            renderizarBandejaAdmin();
+        }
+    });
+    observerTema.observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
     const vistaGuest = document.getElementById("soporte-guest-wall");
     const vistaUsuario = document.getElementById("soporte-usuario-grid");
@@ -337,13 +340,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     asunto,
                     estado: "abierto",
                     motivoCierre: "",
+                    leidoPorAdmin: false,
+                    tieneMensajeAdminPendiente: false,
+                    tieneMensajeUsuarioPendiente: false,
                     timestamp: Date.now(),
                     fechaCreacion: fechaStr,
                     mensajes: [
                         {
                             autor: "usuario",
                             remitenteNombre: nombre,
-                            asunto,
                             texto: descripcion,
                             imagen: pruebaUsuarioBase64 || "",
                             fecha: fechaStr
@@ -394,7 +399,7 @@ function renderizarInterfazSoporte() {
 }
 
 // ============================================================
-// VISTA USUARIO: ACORDEÓN DE CORREOS ENVIADOS Y RESPUESTAS
+// VISTA USUARIO: ACORDEÓN DE SEGUIMIENTO (SIN ASUNTO EN RESPUESTAS)
 // ============================================================
 function renderizarAcordeonUsuario() {
     const contenedor = document.getElementById("usuario-quejas-acordeon");
@@ -406,9 +411,9 @@ function renderizarAcordeonUsuario() {
 
     if (misQuejas.length === 0) {
         contenedor.innerHTML = `
-            <div style="text-align:center; padding:45px 20px; color:#888;">
+            <div style="text-align:center; padding:40px 15px; color:#888;">
                 <p style="font-size:14px; margin-bottom:6px;">No tienes reportes o quejas enviadas aún.</p>
-                <small>Cuando envíes un formulario, aquí aparecerá el hilo de seguimiento estilo correo.</small>
+                <small>Cuando envíes un formulario, aquí aparecerá el hilo de seguimiento.</small>
             </div>
         `;
         return;
@@ -419,9 +424,10 @@ function renderizarAcordeonUsuario() {
         abiertosIds.add(el.getAttribute("data-qid"));
     });
 
-    contenedor.innerHTML = misQuejas.map((queja, index) => {
-        const estaAbierto = abiertosIds.has(queja.id) || (abiertosIds.size === 0 && index === 0);
+    contenedor.innerHTML = misQuejas.map((queja) => {
+        const estaAbierto = abiertosIds.has(queja.id);
         const cerrado = queja.estado === "cerrado";
+        const tieneRespuestaNueva = queja.tieneMensajeUsuarioPendiente === true;
         const mensajes = queja.mensajes || [];
 
         const hiloHTML = mensajes.map(m => {
@@ -432,7 +438,6 @@ function renderizarAcordeonUsuario() {
                         <strong>${esAdmin ? 'Soporte Diamond Hats (Admin)' : escaparHTML(m.remitenteNombre)}</strong>
                         <span>${escaparHTML(m.fecha)}</span>
                     </div>
-                    ${m.asunto ? `<div class="dh-mail-msg-subj">Asunto: ${escaparHTML(m.asunto)}</div>` : ''}
                     <p class="dh-mail-msg-body">${escaparHTML(m.texto).replace(/\n/g, "<br>")}</p>
                     ${m.imagen ? `<img src="${m.imagen}" class="dh-mail-proof-img" alt="Adjunto" onclick="window.open(this.src, '_blank')">` : ''}
                 </div>
@@ -449,28 +454,28 @@ function renderizarAcordeonUsuario() {
             `
             : `
                 <form class="dh-reply-box" onsubmit="enviarRespuestaUsuario(event, '${queja.id}')">
-                    <input type="text" id="reply-subj-${queja.id}" placeholder="Asunto de respuesta (opcional)" class="dh-reply-input">
-                    <textarea id="reply-text-${queja.id}" rows="2" placeholder="Escribe tu respuesta para soporte..." required class="dh-reply-input"></textarea>
+                    <textarea id="reply-text-${queja.id}" rows="2" placeholder="Escribe tu mensaje para soporte..." required class="dh-reply-input"></textarea>
                     <div class="dh-reply-actions">
                         <label class="dh-attach-label">
-                            Adjuntar imagen
+                            Adjuntar foto / archivo
                             <input type="file" accept="image/*" style="display:none;" onchange="previsualizarAdjuntoHilo(this, 'prev-user-${queja.id}')">
                         </label>
-                        <button type="submit" class="dh-btn-send-reply">Enviar Respuesta</button>
+                        <button type="submit" class="dh-btn-send-reply">Enviar Mensaje</button>
                     </div>
                     <img id="prev-user-${queja.id}" data-base64="" style="display:none; max-width:110px; border-radius:6px; margin-top:8px; border:1px solid #d4af37;">
                 </form>
             `;
 
         return `
-            <div class="dh-mail-item ${estaAbierto ? 'abierto' : ''}" data-qid="${queja.id}">
+            <div class="dh-mail-item ${estaAbierto ? 'abierto' : ''} ${tieneRespuestaNueva ? 'unread-user' : ''}" data-qid="${queja.id}">
                 <div class="dh-mail-header" onclick="toggleAcordeonQueja('${queja.id}')">
-                    <div>
+                    <div style="min-width:0; flex:1;">
                         <span class="dh-mail-cat-tag">${escaparHTML(queja.categoria)}</span>
                         <strong class="dh-mail-title">${escaparHTML(queja.asunto)}</strong>
+                        ${tieneRespuestaNueva ? `<span class="dh-new-reply-tag">Nueva respuesta</span>` : ''}
                         <div class="dh-mail-date">${escaparHTML(queja.fechaCreacion)} · ${mensajes.length} mensaje(s)</div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span class="dh-status-pill ${cerrado ? 'closed' : 'open'}">${cerrado ? 'Cerrado' : 'En Seguimiento'}</span>
                         <span class="dh-chevron">▼</span>
                     </div>
@@ -486,9 +491,21 @@ function renderizarAcordeonUsuario() {
     }).join("");
 }
 
-window.toggleAcordeonQueja = function (qid) {
+window.toggleAcordeonQueja = async function (qid) {
     const el = document.querySelector(`.dh-mail-item[data-qid="${qid}"]`);
-    if (el) el.classList.toggle("abierto");
+    if (!el) return;
+    const seAbrio = el.classList.toggle("abierto");
+
+    if (seAbrio) {
+        const queja = todasLasQuejas.find(q => q.id === qid);
+        if (queja && queja.tieneMensajeUsuarioPendiente) {
+            try {
+                await updateDoc(doc(db, "quejas", qid), {
+                    tieneMensajeUsuarioPendiente: false
+                });
+            } catch (e) { }
+        }
+    }
 };
 
 window.previsualizarAdjuntoHilo = function (inputEl, imgId) {
@@ -508,7 +525,6 @@ window.enviarRespuestaUsuario = async function (e, qid) {
     e.preventDefault();
     if (!usuarioSesion) return;
 
-    const subjEl = document.getElementById(`reply-subj-${qid}`);
     const textEl = document.getElementById(`reply-text-${qid}`);
     const prevEl = document.getElementById(`prev-user-${qid}`);
 
@@ -518,7 +534,6 @@ window.enviarRespuestaUsuario = async function (e, qid) {
     const nuevoMensaje = {
         autor: "usuario",
         remitenteNombre: localStorage.getItem("username") || usuarioSesion.email.split("@")[0],
-        asunto: subjEl ? subjEl.value.trim() : "",
         texto,
         imagen: prevEl ? (prevEl.getAttribute("data-base64") || "") : "",
         fecha: new Date().toLocaleString()
@@ -527,15 +542,16 @@ window.enviarRespuestaUsuario = async function (e, qid) {
     try {
         await updateDoc(doc(db, "quejas", qid), {
             mensajes: arrayUnion(nuevoMensaje),
+            tieneMensajeAdminPendiente: true,
             timestamp: Date.now()
         });
     } catch (err) {
-        alert("No se pudo enviar tu respuesta: " + err.message);
+        alert("No se pudo enviar tu mensaje: " + err.message);
     }
 };
 
 // ============================================================
-// VISTA ADMINISTRADOR: BANDEJA DE ENTRADA ESTILO GMAIL
+// VISTA ADMINISTRADOR: BANDEJA + VENTANA DE CHAT EN MÓVIL
 // ============================================================
 function renderizarBandejaAdmin() {
     const listaEl = document.getElementById("admin-inbox-list");
@@ -563,17 +579,31 @@ function renderizarBandejaAdmin() {
     listaEl.innerHTML = todasLasQuejas.map(q => {
         const activo = q.id === ticketSeleccionadoAdminId;
         const cerrado = q.estado === "cerrado";
+        const esNuevoReclamo = !cerrado && q.leidoPorAdmin === false;
+        const tieneMensajeNuevo = !cerrado && !esNuevoReclamo && q.tieneMensajeAdminPendiente === true;
+
+        let extraRowClass = "";
+        let pillHTML = `<span class="dh-status-pill ${cerrado ? 'closed' : 'open'}" style="font-size:10px; padding:2px 7px;">${cerrado ? 'Cerrado' : 'Abierto'}</span>`;
+
+        if (esNuevoReclamo) {
+            extraRowClass = "unread-red";
+            pillHTML = `<span class="dh-status-pill new-claim" style="font-size:10px; padding:2px 7px;">Nuevo</span>`;
+        } else if (tieneMensajeNuevo) {
+            extraRowClass = "unread-gold";
+            pillHTML = `<span class="dh-new-reply-tag">Mensaje</span>`;
+        }
+
         const avatarHTML = q.avatar
             ? `<img src="${q.avatar}" alt="User">`
             : `<span>${escaparHTML((q.nombre || "U").charAt(0).toUpperCase())}</span>`;
 
         return `
-            <div class="dh-admin-mail-row ${activo ? 'active' : ''}" onclick="seleccionarQuejaAdmin('${q.id}')">
+            <div class="dh-admin-mail-row ${activo ? 'active' : ''} ${extraRowClass}" onclick="seleccionarQuejaAdmin('${q.id}')">
                 <div class="dh-admin-user-avatar">${avatarHTML}</div>
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
                         <strong style="color:${colorTextoPrincipal}; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escaparHTML(q.nombre)}</strong>
-                        <span class="dh-status-pill ${cerrado ? 'closed' : 'open'}" style="font-size:10px; padding:2px 7px;">${cerrado ? 'Cerrado' : 'Abierto'}</span>
+                        ${pillHTML}
                     </div>
                     <div style="font-size:11.5px; color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escaparHTML(q.correo)}</div>
                     <div style="font-size:12.5px; color:#cca142; font-weight:700; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escaparHTML(q.asunto)}</div>
@@ -584,6 +614,11 @@ function renderizarBandejaAdmin() {
 
     const actual = todasLasQuejas.find(q => q.id === ticketSeleccionadoAdminId);
     if (!actual) return;
+
+    // En escritorio, si el primer ticket seleccionado tiene alertas sin leer, marcarlas leídas automáticamente
+    if (window.innerWidth > 900 && (actual.leidoPorAdmin === false || actual.tieneMensajeAdminPendiente === true)) {
+        marcarLeidoPorAdmin(actual.id);
+    }
 
     const cerrado = actual.estado === "cerrado";
     const avatarGrande = actual.avatar
@@ -598,20 +633,32 @@ function renderizarBandejaAdmin() {
                     <strong>${esAdmin ? 'Tú (Administrador Diamond Hats)' : escaparHTML(m.remitenteNombre)}</strong>
                     <span>${escaparHTML(m.fecha)}</span>
                 </div>
-                ${m.asunto ? `<div class="dh-mail-msg-subj">Asunto: ${escaparHTML(m.asunto)}</div>` : ''}
                 <p class="dh-mail-msg-body">${escaparHTML(m.texto).replace(/\n/g, "<br>")}</p>
                 ${m.imagen ? `<img src="${m.imagen}" class="dh-mail-proof-img" alt="Adjunto" onclick="window.open(this.src, '_blank')">` : ''}
             </div>
         `;
     }).join("");
 
+    if (chatMovilAbierto && window.innerWidth <= 900) {
+        lecturaEl.classList.add("mobile-chat-open");
+    } else {
+        lecturaEl.classList.remove("mobile-chat-open");
+    }
+
     lecturaEl.innerHTML = `
+        <div class="dh-mobile-chat-topbar">
+            <button type="button" class="dh-close-mobile-chat-btn" onclick="cerrarChatMovilAdmin()">
+                ← Volver a Bandeja
+            </button>
+            <span style="font-size:11.5px; color:#888; font-weight:700;">CHAT DE SOPORTE</span>
+        </div>
+
         <div class="dh-reader-top">
             <div style="display:flex; align-items:center; gap:12px;">
-                <div class="dh-admin-user-avatar" style="width:48px; height:48px;">${avatarGrande}</div>
+                <div class="dh-admin-user-avatar" style="width:46px; height:46px;">${avatarGrande}</div>
                 <div>
-                    <h3 style="color:${colorTextoPrincipal}; font-size:16px; margin-bottom:2px;">${escaparHTML(actual.nombre)}</h3>
-                    <span style="color:#888; font-size:12.5px;">${escaparHTML(actual.correo)}</span> ·
+                    <h3 style="color:${colorTextoPrincipal}; font-size:15.5px; margin-bottom:2px;">${escaparHTML(actual.nombre)}</h3>
+                    <span style="color:#888; font-size:12px;">${escaparHTML(actual.correo)}</span> ·
                     <span class="dh-mail-cat-tag">${escaparHTML(actual.categoria)}</span>
                 </div>
             </div>
@@ -619,11 +666,11 @@ function renderizarBandejaAdmin() {
         </div>
 
         <div style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(150,150,150,0.2);">
-            <strong style="color:#cca142; font-size:15px;">Asunto: ${escaparHTML(actual.asunto)}</strong>
+            <strong style="color:#cca142; font-size:15px;">${escaparHTML(actual.asunto)}</strong>
             <div style="font-size:11.5px; color:#888;">Recibido: ${escaparHTML(actual.fechaCreacion)}</div>
         </div>
 
-        <div class="dh-mail-thread" style="max-height:320px; overflow-y:auto; padding-right:6px;">
+        <div class="dh-mail-thread" style="max-height:330px; overflow-y:auto; padding-right:4px;">
             ${mensajesHTML}
         </div>
 
@@ -636,15 +683,13 @@ function renderizarBandejaAdmin() {
             `
             : `
                 <form class="dh-reply-box" style="margin-top:16px;" onsubmit="responderQuejaAdmin(event, '${actual.id}')">
-                    <strong style="display:block; font-size:12px; color:#cca142; margin-bottom:8px; text-transform:uppercase;">Responder al Cliente</strong>
-                    <input type="text" id="admin-reply-subj" placeholder="Asunto de respuesta (Ej. Re: ${escaparHTML(actual.asunto)})" class="dh-reply-input">
-                    <textarea id="admin-reply-text" rows="3" placeholder="Escribe la solución o respuesta oficial..." required class="dh-reply-input"></textarea>
+                    <textarea id="admin-reply-text" rows="2" placeholder="Escribe tu mensaje para el cliente..." required class="dh-reply-input"></textarea>
                     <div class="dh-reply-actions">
                         <label class="dh-attach-label">
-                            Adjuntar imagen
+                            Adjuntar foto / archivo
                             <input type="file" accept="image/*" style="display:none;" onchange="previsualizarAdjuntoHilo(this, 'prev-admin-reply')">
                         </label>
-                        <button type="submit" class="dh-btn-send-reply">Enviar Respuesta</button>
+                        <button type="submit" class="dh-btn-send-reply">Enviar Mensaje</button>
                     </div>
                     <img id="prev-admin-reply" data-base64="" style="display:none; max-width:120px; border-radius:6px; margin-top:8px; border:1px solid #d4af37;">
                 </form>
@@ -653,14 +698,30 @@ function renderizarBandejaAdmin() {
     `;
 }
 
-window.seleccionarQuejaAdmin = function (qid) {
+async function marcarLeidoPorAdmin(qid) {
+    try {
+        await updateDoc(doc(db, "quejas", qid), {
+            leidoPorAdmin: true,
+            tieneMensajeAdminPendiente: false
+        });
+    } catch (e) { }
+}
+
+window.seleccionarQuejaAdmin = async function (qid) {
     ticketSeleccionadoAdminId = qid;
+    chatMovilAbierto = true;
+    await marcarLeidoPorAdmin(qid);
     renderizarBandejaAdmin();
+};
+
+window.cerrarChatMovilAdmin = function () {
+    chatMovilAbierto = false;
+    const lecturaEl = document.getElementById("admin-inbox-reader");
+    if (lecturaEl) lecturaEl.classList.remove("mobile-chat-open");
 };
 
 window.responderQuejaAdmin = async function (e, qid) {
     e.preventDefault();
-    const subj = document.getElementById("admin-reply-subj").value.trim();
     const texto = document.getElementById("admin-reply-text").value.trim();
     const prevEl = document.getElementById("prev-admin-reply");
     if (!texto) return;
@@ -668,7 +729,6 @@ window.responderQuejaAdmin = async function (e, qid) {
     const respuestaAdmin = {
         autor: "admin",
         remitenteNombre: "Soporte Diamond Hats",
-        asunto: subj,
         texto,
         imagen: prevEl ? (prevEl.getAttribute("data-base64") || "") : "",
         fecha: new Date().toLocaleString()
@@ -677,13 +737,16 @@ window.responderQuejaAdmin = async function (e, qid) {
     try {
         await updateDoc(doc(db, "quejas", qid), {
             mensajes: arrayUnion(respuestaAdmin),
+            leidoPorAdmin: true,
+            tieneMensajeAdminPendiente: false,
+            tieneMensajeUsuarioPendiente: true,
             timestamp: Date.now()
         });
         if (typeof window.mostrarNotificacionAuth === "function") {
-            window.mostrarNotificacionAuth("Respuesta Enviada", "El cliente ya puede ver tu respuesta en su bandeja.");
+            window.mostrarNotificacionAuth("Mensaje Enviado", "El cliente ya recibió tu mensaje.");
         }
     } catch (err) {
-        alert("Error al enviar respuesta: " + err.message);
+        alert("Error al enviar mensaje: " + err.message);
     }
 };
 

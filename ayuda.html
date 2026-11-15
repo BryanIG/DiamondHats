@@ -5,50 +5,363 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diamond Hats | Centro de Ayuda y Pedidos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="tienda.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="tienda.css?v=4">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Modo Oscuro Real para Ayuda y Rastreo */
+        /* ==========================================
+           ESTILOS PREMIUM AYUDA & RASTREO DE PEDIDOS
+           ========================================== */
+        .contacto-main {
+            background: #f6f6f6;
+            transition: background-color 0.3s ease;
+        }
+
+        .ayuda-container {
+            max-width: 1280px;
+            margin: 35px auto 55px;
+            padding: 0 22px;
+            min-height: 55vh;
+        }
+
+        .ayuda-welcome {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 22px;
+            color: #111;
+        }
+
+        .ayuda-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .ayuda-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            padding: 26px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            animation: dhCardSlide 0.45s ease backwards;
+        }
+
+        .ayuda-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #cca142, transparent);
+        }
+
+        @keyframes dhCardSlide {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ayuda-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(204, 161, 66, 0.35);
+        }
+
+        .ayuda-card-header h3 {
+            font-size: 1.25rem;
+            color: #111;
+            margin: 0;
+        }
+
+        .order-selector-select {
+            padding: 7px 12px;
+            border-radius: 9px;
+            border: 1px solid rgba(204, 161, 66, 0.5);
+            background: rgba(204, 161, 66, 0.08);
+            color: #9c7621;
+            font-size: 12.5px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Timeline VIP Responsivo */
+        .dh-tracking-box {
+            padding: 10px 6px 6px;
+        }
+
+        .dh-track-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: rgba(204, 161, 66, 0.08);
+            border: 1px solid rgba(204, 161, 66, 0.28);
+            border-radius: 12px;
+            padding: 11px 14px;
+            margin-bottom: 26px;
+            font-size: 13px;
+        }
+
+        .dh-track-meta strong {
+            color: #cca142;
+        }
+
+        .timeline-line {
+            position: relative;
+            height: 6px;
+            background: rgba(204, 161, 66, 0.2);
+            border-radius: 50px;
+            margin: 22px 18px 46px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #b0882e, #f3d266, #ffeaa7);
+            box-shadow: 0 0 12px rgba(243, 210, 102, 0.7);
+            transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+            border-radius: 50px;
+        }
+
+        .timeline-step {
+            position: relative;
+            width: 26px;
+            height: 26px;
+            background: #ffffff;
+            border: 2.5px solid #ccc;
+            border-radius: 50%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #888;
+            transition: all 0.35s ease;
+        }
+
+        .timeline-step.completed {
+            background: #cca142;
+            border-color: #cca142;
+            color: #111;
+        }
+
+        .timeline-step.active {
+            background: #f3d266;
+            border-color: #cca142;
+            color: #111;
+            transform: scale(1.18);
+            box-shadow: 0 0 0 5px rgba(204, 161, 66, 0.25);
+        }
+
+        .timeline-label {
+            position: absolute;
+            top: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11.5px;
+            color: #777;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .timeline-step.active .timeline-label,
+        .timeline-step.completed .timeline-label {
+            color: #cca142;
+            font-weight: 700;
+        }
+
+        .dh-status-banner {
+            text-align: center;
+            padding: 13px 16px;
+            border-radius: 12px;
+            background: rgba(204, 161, 66, 0.1);
+            border: 1px dashed rgba(204, 161, 66, 0.45);
+            color: #9c7621;
+            font-weight: 700;
+            font-size: 13.5px;
+        }
+
+        /* Tabla Escritorio + Tarjetas Móvil */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        .history-table th {
+            color: #cca142;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1.5px solid rgba(204, 161, 66, 0.3);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .history-table td {
+            padding: 13px 10px;
+            border-bottom: 1px solid #eeeeee;
+            color: #222;
+        }
+
+        .btn-descargar-mini {
+            background: rgba(204, 161, 66, 0.12);
+            border: 1px solid #cca142;
+            color: #9c7621;
+            padding: 6px 13px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-descargar-mini:hover {
+            background: #cca142;
+            color: #111;
+        }
+
+        .mobile-history-cards {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dh-history-mobile-card {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 13px;
+            padding: 13px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ==========================================
+           MODO OSCURO COMPLETO EN AYUDA
+           ========================================== */
         body.dark-mode,
         body.dark-mode .contacto-main,
         body.dark-mode .ayuda-container {
-            background-color: #111111 !important;
+            background-color: #0e0e0e !important;
             color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .ayuda-welcome,
+        body.dark-mode .ayuda-card-header h3 {
+            color: #ffffff !important;
         }
 
         body.dark-mode .ayuda-card,
         body.dark-mode .auth-lock-container {
-            background-color: #1a1a1a !important;
-            border: 1px solid rgba(212, 175, 55, 0.25) !important;
+            background: linear-gradient(155deg, #181818, #121212) !important;
+            border: 1px solid rgba(212, 175, 55, 0.28) !important;
             color: #f5f5f5 !important;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65) !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6) !important;
         }
 
-        body.dark-mode .ayuda-welcome,
-        body.dark-mode .ayuda-card h3 {
-            color: #f5f5f5 !important;
+        body.dark-mode .order-selector-select {
+            color: #f3d266 !important;
+            background: #202020 !important;
         }
 
-        body.dark-mode .history-table th {
-            color: #d4af37 !important;
-            border-bottom: 1px solid #333 !important;
+        body.dark-mode .timeline-step {
+            background: #1d1d1d !important;
+            border-color: #444 !important;
+            color: #888 !important;
+        }
+
+        body.dark-mode .timeline-step.completed,
+        body.dark-mode .timeline-step.active {
+            background: #f3d266 !important;
+            border-color: #cca142 !important;
+            color: #111111 !important;
+        }
+
+        body.dark-mode .dh-status-banner {
+            color: #f3d266 !important;
+            background: rgba(212, 175, 55, 0.1) !important;
         }
 
         body.dark-mode .history-table td {
-            color: #e0e0e0 !important;
-            border-bottom: 1px solid #2a2a2a !important;
+            color: #e5e5e5 !important;
+            border-bottom-color: #292929 !important;
         }
 
         body.dark-mode .btn-descargar-mini {
-            background: rgba(212, 175, 55, 0.14) !important;
-            border: 1px solid #d4af37 !important;
             color: #f3d266 !important;
         }
 
-        body.dark-mode .btn-descargar-mini:hover {
-            background: #d4af37 !important;
-            color: #111111 !important;
+        body.dark-mode .dh-history-mobile-card {
+            background: #1c1c1c !important;
+            border-color: #303030 !important;
+        }
+
+        /* ==========================================
+           RESPONSIVIDAD PARA CELULARES (< 900px)
+           ========================================== */
+        @media (max-width: 900px) {
+            .ayuda-container {
+                margin: 22px auto 40px;
+                padding: 0 14px;
+            }
+
+            .ayuda-welcome {
+                font-size: 1.35rem;
+                margin-bottom: 16px;
+            }
+
+            .ayuda-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .ayuda-card {
+                padding: 18px 15px;
+                border-radius: 16px;
+            }
+
+            .timeline-line {
+                margin: 20px 14px 42px;
+            }
+
+            .timeline-label {
+                font-size: 10px;
+            }
+
+            .desktop-history-wrap {
+                display: none !important;
+            }
+
+            .mobile-history-cards {
+                display: flex !important;
+            }
         }
     </style>
 </head>
@@ -88,9 +401,9 @@
         <section class="ayuda-container">
             <!-- Aviso sin sesión -->
             <div id="ayuda-auth-wall" class="auth-lock-container"
-                style="display:none; text-align:center; padding:50px;">
-                <h2 style="color:#cca142;">Acceso Restringido</h2>
-                <p style="color:#888; font-size:16px;">Inicia sesión para visualizar tu historial de compras y rastrear
+                style="display:none; text-align:center; padding:45px 20px;">
+                <h2 style="color:#cca142; margin-bottom:10px;">Acceso Restringido</h2>
+                <p style="color:#888; font-size:15px;">Inicia sesión para visualizar tu historial de compras y rastrear
                     tus paquetes.</p>
                 <div style="margin-top:20px;">
                     <button class="btn btn-gold"
@@ -98,24 +411,31 @@
                 </div>
             </div>
 
-            <!-- Panel de Ayuda (Visible Solo con Sesión) -->
+            <!-- Panel de Ayuda -->
             <div id="ayuda-dashboard" style="display:none;">
                 <h2 class="ayuda-welcome">Bienvenido de vuelta, <span id="ayuda-user-name"
                         style="color:#cca142;">Cliente</span></h2>
 
                 <div class="ayuda-grid">
-                    <!-- TIMELINE: Estado del último pedido -->
+                    <!-- TIMELINE: Rastreo interactivo -->
                     <div class="ayuda-card">
-                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">Pedidos
-                            en Curso</h3>
+                        <div class="ayuda-card-header">
+                            <h3>Pedidos en Curso</h3>
+                            <select id="selector-pedido-rastreo" class="order-selector-select"
+                                style="display:none;"></select>
+                        </div>
                         <div id="timeline-container-render"></div>
                     </div>
 
-                    <!-- HISTORIAL: Tickets guardados por cuenta -->
+                    <!-- HISTORIAL: Tabla en PC / Tarjetas en Móvil -->
                     <div class="ayuda-card">
-                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">Historial
-                            de Compras</h3>
-                        <div style="overflow-x:auto;">
+                        <div class="ayuda-card-header">
+                            <h3>Historial de Compras</h3>
+                            <span id="total-compras-badge" style="font-size:12px; font-weight:700; color:#cca142;">0
+                                órdenes</span>
+                        </div>
+
+                        <div class="desktop-history-wrap" style="overflow-x:auto;">
                             <table class="history-table">
                                 <thead>
                                     <tr>
@@ -127,9 +447,13 @@
                                 </thead>
                                 <tbody id="tabla-historial"></tbody>
                             </table>
-                            <p id="no-history-msg" style="display:none; padding:20px; color:#aaa; text-align:center;">No
-                                tienes compras registradas aún.</p>
                         </div>
+
+                        <div id="mobile-historial-cards" class="mobile-history-cards"></div>
+
+                        <p id="no-history-msg" style="display:none; padding:25px 10px; color:#888; text-align:center;">
+                            No tienes compras registradas aún.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -170,8 +494,8 @@
 
     <div id="hidden-pdf-render" style="display:none; position:absolute; top:-9999px;"></div>
 
-    <script type="module" src="tienda.js"></script>
-    <script type="module" src="ayuda.js"></script>
+    <script type="module" src="tienda.js?v=4"></script>
+    <script type="module" src="ayuda.js?v=4"></script>
 </body>
 
 </html>

@@ -5,58 +5,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diamond Hats | Panel de Administración</title>
-    <link rel="stylesheet" href="control.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="control.css?v=3">
 </head>
 
 <body>
 
+    <!-- LOADER DE VERIFICACIÓN -->
     <div id="vista-cargando" class="login-wrapper">
         <div class="login-box">
-            <h1>💎 DIAMOND HATS</h1>
-            <p>Verificando permisos de administrador...</p>
+            <div class="loader-ring"></div>
+            <h1>DIAMOND HATS</h1>
+            <p>Verificando credenciales de administrador...</p>
         </div>
     </div>
 
+    <!-- DASHBOARD PRINCIPAL -->
     <div id="vista-dashboard" style="display: none;">
         <header class="admin-navbar">
             <div class="admin-brand">
-                <h2>💎 DIAMOND HATS | Panel de Control</h2>
+                <span class="brand-dot"></span>
+                <div>
+                    <h2>DIAMOND HATS</h2>
+                    <span class="brand-sub">Centro de Control & Catálogo</span>
+                </div>
             </div>
             <div class="admin-actions">
-                <span id="admin-user-badge" style="color: #aaa; font-size: 13px;"></span>
+                <span id="admin-user-badge" class="admin-email-pill"></span>
                 <a href="gorras.html" class="btn-outline">Ver Catálogo</a>
                 <button id="btn-cerrar-sesion" class="btn-logout">Cerrar Sesión</button>
             </div>
         </header>
 
         <main class="admin-container">
-            <!-- Herramientas Rápidas -->
-            <section class="quick-tools">
-                <div class="tool-card">
-                    <div>
-                        <h3>🎲 Ofertas Random del Día</h3>
-                        <p>Selecciona 6 gorras al azar del catálogo y les asigna descuentos aleatorios (15% a 45%) para
-                            clientes registrados.</p>
-                    </div>
-                    <button id="btn-ofertas-random" class="btn-gold">Generar Ofertas Aleatorias</button>
-                </div>
 
-                <div class="tool-card">
-                    <div>
-                        <h3>📦 Carga Inicial del Catálogo</h3>
-                        <p>Sube las 21 gorras base a Firebase Firestore si necesitas restaurar el inventario inicial.
-                        </p>
-                    </div>
-                    <button id="btn-cargar-inicial" class="btn-outline" style="width: 100%;">Subir Catálogo Base (21
-                        Gorras)</button>
+            <!-- KPIs / MÉTRICAS EN VIVO -->
+            <section class="admin-stats-bar">
+                <div class="stat-pill-card">
+                    <span class="stat-label">Total Gorras</span>
+                    <strong class="stat-value" id="stat-total">0</strong>
+                </div>
+                <div class="stat-pill-card">
+                    <span class="stat-label">Ofertas Activas</span>
+                    <strong class="stat-value gold" id="stat-ofertas">0</strong>
+                </div>
+                <div class="stat-pill-card">
+                    <span class="stat-label">Drops Limitados</span>
+                    <strong class="stat-value" id="stat-limitados">0</strong>
+                </div>
+                <div class="stat-pill-card">
+                    <span class="stat-label">Categorías</span>
+                    <strong class="stat-value" id="stat-categorias">0</strong>
                 </div>
             </section>
 
-            <!-- Grid Principal -->
+            <!-- MOTOR DE OFERTAS RANDOM CONFIGURABLE -->
+            <section class="random-engine-card">
+                <div class="random-engine-header">
+                    <div>
+                        <span class="engine-badge">AUTOMATIZACIÓN VIP</span>
+                        <h3>Generador Inteligente de Ofertas Random</h3>
+                        <p>Personaliza cuántos productos entrarán en promoción, el rango de descuento y la categoría
+                            objetivo.</p>
+                    </div>
+                </div>
+
+                <div class="random-controls-grid">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label for="rnd-cantidad">Cantidad de Gorras</label>
+                        <input type="number" id="rnd-cantidad" min="1" max="30" value="6">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label for="rnd-min-desc">Descuento Mínimo (%)</label>
+                        <input type="number" id="rnd-min-desc" min="5" max="85" value="15">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label for="rnd-max-desc">Descuento Máximo (%)</label>
+                        <input type="number" id="rnd-max-desc" min="10" max="90" value="45">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label for="rnd-categoria">Categoría Objetivo</label>
+                        <select id="rnd-categoria">
+                            <option value="todas">Todas las categorías</option>
+                            <option value="originales">Gorras Originales</option>
+                            <option value="temporada">Gorras De Temporada</option>
+                            <option value="colaboraciones">Colaboraciones Especiales</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="random-footer-bar">
+                    <label class="checkbox-group" style="font-size:13px;">
+                        <input type="checkbox" id="rnd-excluir-limitados" checked>
+                        <span>Excluir ediciones de tiempo limitado (Drops)</span>
+                    </label>
+
+                    <div class="random-action-btns">
+                        <button type="button" id="btn-limpiar-ofertas" class="btn-outline-danger">Quitar Todas las
+                            Ofertas</button>
+                        <button type="button" id="btn-ofertas-random" class="btn-gold">Generar Ofertas Ahora</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GRID PRINCIPAL: FORMULARIO + INVENTARIO -->
             <section class="admin-grid">
-                <!-- Formulario Agregar / Editar -->
-                <div class="panel-card">
-                    <h3 id="form-titulo">➕ Agregar Nueva Gorra</h3>
+                <!-- FORMULARIO AGREGAR / EDITAR -->
+                <div class="panel-card" id="panel-formulario-producto">
+                    <div class="panel-header-flex">
+                        <h3 id="form-titulo">Agregar Nueva Gorra</h3>
+                        <span class="mode-indicator" id="mode-indicator">NUEVO</span>
+                    </div>
+
                     <form id="form-producto">
                         <input type="hidden" id="prod-id">
                         <input type="hidden" id="prod-imagen-actual">
@@ -72,7 +137,6 @@
                                 required></textarea>
                         </div>
 
-                        <!-- Selector de Categoría + Crear Nueva -->
                         <div class="input-group">
                             <label for="prod-categoria">Categoría / Temática</label>
                             <div class="cat-row">
@@ -90,22 +154,21 @@
                             <input type="number" id="prod-precio" min="1" placeholder="Ej. 650" required>
                         </div>
 
-                        <!-- Subida Local de Imagen -->
                         <div class="input-group">
-                            <label>Imagen del Producto (Desde tu equipo)</label>
+                            <label>Imagen del Producto (Desde tu dispositivo)</label>
                             <div class="upload-box" id="upload-box">
                                 <img id="preview-img-upload" src="" alt="Vista previa">
-                                <p id="upload-text">📁 Haz clic aquí para seleccionar imagen</p>
-                                <small>Formatos: JPG, PNG, WEBP</small>
+                                <p id="upload-text">Toca aquí para seleccionar imagen</p>
+                                <small>Formatos compatibles: JPG, PNG, WEBP</small>
                                 <input type="file" id="prod-imagen-file" accept="image/*" style="display: none;">
                             </div>
                         </div>
 
                         <!-- Opción 1: Oferta / Descuento -->
-                        <div class="special-toggle-box">
+                        <div class="special-toggle-box" id="box-oferta">
                             <label class="checkbox-group">
                                 <input type="checkbox" id="prod-en-oferta">
-                                <span>🔥 Activar descuento / oferta</span>
+                                <span>Activar descuento / oferta</span>
                             </label>
                             <div class="sub-fields" id="grupo-descuento">
                                 <div class="input-group" style="margin-bottom:0;">
@@ -119,7 +182,7 @@
                         <div class="special-toggle-box" id="box-tiempo-limitado">
                             <label class="checkbox-group">
                                 <input type="checkbox" id="prod-tiempo-limitado">
-                                <span style="color: #f3d266;">⏳ Edición de Tiempo Limitado (Drop Especial)</span>
+                                <span style="color: #f3d266;">Edición de Tiempo Limitado (Drop Especial)</span>
                             </label>
                             <div class="sub-fields" id="grupo-tiempo-limitado">
                                 <div class="two-cols">
@@ -147,10 +210,23 @@
                     </form>
                 </div>
 
-                <!-- Tabla de Inventario -->
+                <!-- INVENTARIO: TABLA EN ESCRITORIO / ACORDEÓN EN MÓVIL -->
                 <div class="panel-card">
-                    <h3>📋 Inventario Actual (<span id="contador-productos">0</span> gorras)</h3>
-                    <div class="table-responsive">
+                    <div class="inventory-top-bar">
+                        <h3>Inventario Actual (<span id="contador-productos">0</span> gorras)</h3>
+                        <div class="inventory-filters">
+                            <input type="text" id="filtro-busqueda" placeholder="Buscar gorra...">
+                            <select id="filtro-categoria-inv">
+                                <option value="todas">Todas</option>
+                                <option value="originales">Originales</option>
+                                <option value="temporada">Temporada</option>
+                                <option value="colaboraciones">Colaboraciones</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Vista Escritorio (Tabla) -->
+                    <div class="table-responsive desktop-only-table">
                         <table>
                             <thead>
                                 <tr>
@@ -169,6 +245,11 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Vista Móvil (Acordeón Interactivo) -->
+                    <div id="acordeon-productos-movil" class="mobile-only-accordion">
+                        <p style="text-align: center; color: #888; padding: 20px;">Cargando productos...</p>
                     </div>
                 </div>
             </section>
@@ -191,7 +272,11 @@
         const btnCerrarSesion = document.getElementById("btn-cerrar-sesion");
 
         const formProducto = document.getElementById("form-producto");
+        const panelFormulario = document.getElementById("panel-formulario-producto");
         const selectCategoria = document.getElementById("prod-categoria");
+        const selectRndCategoria = document.getElementById("rnd-categoria");
+        const selectFiltroInv = document.getElementById("filtro-categoria-inv");
+        const inputBusquedaInv = document.getElementById("filtro-busqueda");
         const btnNuevaCategoria = document.getElementById("btn-nueva-categoria");
 
         const uploadBox = document.getElementById("upload-box");
@@ -200,6 +285,7 @@
         const uploadText = document.getElementById("upload-text");
 
         const checkOferta = document.getElementById("prod-en-oferta");
+        const boxOferta = document.getElementById("box-oferta");
         const grupoDescuento = document.getElementById("grupo-descuento");
 
         const checkLimitado = document.getElementById("prod-tiempo-limitado");
@@ -208,12 +294,13 @@
 
         const btnCancelarEdicion = document.getElementById("btn-cancelar-edicion");
         const tablaBody = document.getElementById("tabla-productos-body");
+        const acordeonMovil = document.getElementById("acordeon-productos-movil");
 
         function mostrarAviso(mensaje) {
             const toast = document.getElementById("admin-toast");
             toast.textContent = mensaje;
             toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 3000);
+            setTimeout(() => toast.classList.remove("show"), 3200);
         }
 
         function resolverRutaImagen(imgStr) {
@@ -243,9 +330,7 @@
             window.location.href = "tienda.html";
         });
 
-        // ==========================================
-        // CREAR CATEGORÍA NUEVA AL VUELO
-        // ==========================================
+        // Crear nueva categoría al vuelo
         btnNuevaCategoria.addEventListener("click", () => {
             const nombreNuevo = prompt("Escribe el nombre de la nueva categoría (Ej. Urban Street, Edición Nocturna):");
             if (!nombreNuevo || !nombreNuevo.trim()) return;
@@ -253,46 +338,52 @@
             const limpio = nombreNuevo.trim();
             const clave = limpio.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
 
-            // Verificar si ya existe en el select
-            let existe = false;
-            for (const opt of selectCategoria.options) {
-                if (opt.value === clave) existe = true;
-            }
-            if (!existe) {
-                const nuevaOpcion = document.createElement("option");
-                nuevaOpcion.value = clave;
-                nuevaOpcion.textContent = limpio;
-                selectCategoria.appendChild(nuevaOpcion);
-            }
+            [selectCategoria, selectRndCategoria, selectFiltroInv].forEach(sel => {
+                if (!sel) return;
+                let existe = false;
+                for (const opt of sel.options) {
+                    if (opt.value === clave) existe = true;
+                }
+                if (!existe) {
+                    const nuevaOpcion = document.createElement("option");
+                    nuevaOpcion.value = clave;
+                    nuevaOpcion.textContent = limpio;
+                    sel.appendChild(nuevaOpcion);
+                }
+            });
+
             selectCategoria.value = clave;
-            mostrarAviso(`Categoría "${limpio}" lista para usar`);
+            mostrarAviso(`Categoría "${limpio}" agregada`);
         });
 
-        function sincronizarCategoriasEnSelect(productos) {
+        function sincronizarCategoriasEnSelects(productos) {
             const base = new Set(["originales", "temporada", "colaboraciones"]);
             productos.forEach(p => {
                 if (p.categoria) {
                     const c = p.categoria.toLowerCase();
                     if (!base.has(c)) {
                         base.add(c);
-                        let yaEsta = false;
-                        for (const opt of selectCategoria.options) {
-                            if (opt.value === c) yaEsta = true;
-                        }
-                        if (!yaEsta) {
-                            const opt = document.createElement("option");
-                            opt.value = c;
-                            opt.textContent = c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, " ");
-                            selectCategoria.appendChild(opt);
-                        }
+                        const label = c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, " ");
+                        [selectCategoria, selectRndCategoria, selectFiltroInv].forEach(sel => {
+                            if (!sel) return;
+                            let yaEsta = false;
+                            for (const opt of sel.options) {
+                                if (opt.value === c) yaEsta = true;
+                            }
+                            if (!yaEsta) {
+                                const opt = document.createElement("option");
+                                opt.value = c;
+                                opt.textContent = label;
+                                sel.appendChild(opt);
+                            }
+                        });
                     }
                 }
             });
+            document.getElementById("stat-categorias").textContent = base.size;
         }
 
-        // ==========================================
-        // SUBIDA LOCAL DE IMAGEN Y COMPRESIÓN LIGERA
-        // ==========================================
+        // Subida local de imagen y compresión
         uploadBox.addEventListener("click", () => inputImagenFile.click());
 
         inputImagenFile.addEventListener("change", (e) => {
@@ -303,7 +394,6 @@
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
-                    // Redimensionar suavemente para guardar rápido en Firestore
                     const canvas = document.createElement("canvas");
                     const MAX_WIDTH = 650;
                     let width = img.width;
@@ -321,23 +411,23 @@
                     imagenBase64Seleccionada = canvas.toDataURL("image/jpeg", 0.82);
                     previewImgUpload.src = imagenBase64Seleccionada;
                     previewImgUpload.style.display = "inline-block";
-                    uploadText.textContent = `✅ Imagen cargada: ${file.name}`;
+                    uploadText.textContent = `Imagen lista: ${file.name}`;
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
 
-        // Toggles de Oferta y Tiempo Limitado
+        // Toggles visuales
         checkOferta.addEventListener("change", () => {
             grupoDescuento.style.display = checkOferta.checked ? "block" : "none";
+            boxOferta.classList.toggle("limited-active", checkOferta.checked);
         });
 
         checkLimitado.addEventListener("change", () => {
             if (checkLimitado.checked) {
                 grupoLimitado.style.display = "block";
                 boxLimitado.classList.add("limited-active");
-                // Poner por defecto +24 horas desde ahora si está vacío
                 const inputFecha = document.getElementById("prod-fecha-limite");
                 if (!inputFecha.value) {
                     const manana = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -357,41 +447,70 @@
                 snapshot.forEach((documento) => {
                     listaProductosCache.push({ id: documento.id, ...documento.data() });
                 });
-                // Ordenar poniendo los de Tiempo Limitado primero
                 listaProductosCache.sort((a, b) => (b.tiempoLimitado ? 1 : 0) - (a.tiempoLimitado ? 1 : 0));
-                sincronizarCategoriasEnSelect(listaProductosCache);
-                renderizarTabla(listaProductosCache);
+
+                // Actualizar KPIs
+                document.getElementById("stat-total").textContent = listaProductosCache.length;
+                document.getElementById("stat-ofertas").textContent = listaProductosCache.filter(p => p.enOferta).length;
+                document.getElementById("stat-limitados").textContent = listaProductosCache.filter(p => p.tiempoLimitado).length;
+
+                sincronizarCategoriasEnSelects(listaProductosCache);
+                aplicarFiltrosInventario();
             });
         }
 
-        function renderizarTabla(productos) {
+        function aplicarFiltrosInventario() {
+            const texto = (inputBusquedaInv?.value || "").toLowerCase().trim();
+            const cat = selectFiltroInv?.value || "todas";
+
+            const filtrados = listaProductosCache.filter(p => {
+                const coincideTexto = !texto ||
+                    (p.nombre || "").toLowerCase().includes(texto) ||
+                    (p.descripcion || "").toLowerCase().includes(texto);
+                const coincideCat = cat === "todas" || (p.categoria || "").toLowerCase() === cat;
+                return coincideTexto && coincideCat;
+            });
+
+            renderizarInventario(filtrados);
+        }
+
+        inputBusquedaInv?.addEventListener("input", aplicarFiltrosInventario);
+        selectFiltroInv?.addEventListener("change", aplicarFiltrosInventario);
+
+        function renderizarInventario(productos) {
             document.getElementById("contador-productos").textContent = productos.length;
             tablaBody.innerHTML = "";
+            acordeonMovil.innerHTML = "";
 
             if (productos.length === 0) {
-                tablaBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888; padding:25px;">No hay gorras registradas.</td></tr>`;
+                tablaBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888; padding:25px;">No se encontraron gorras con ese filtro.</td></tr>`;
+                acordeonMovil.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">No se encontraron gorras con ese filtro.</p>`;
                 return;
             }
 
-            productos.forEach((prod) => {
+            productos.forEach((prod, idx) => {
+                const imgUrl = resolverRutaImagen(prod.imagen);
+                const nombreEscapado = (prod.nombre || "").replace(/'/g, "\\'");
+
                 const precioMostrar = prod.enOferta
-                    ? `<strong style="color:#d4af37;">$${prod.precio}</strong> <small style="text-decoration:line-through; color:#777;">$${prod.precioOriginal}</small>`
-                    : `$${prod.precio}`;
+                    ? `<strong style="color:#f3d266;">$${prod.precio}</strong> <small style="text-decoration:line-through; color:#777;">$${prod.precioOriginal}</small>`
+                    : `<strong>$${prod.precio}</strong>`;
 
                 let estadoHTML = prod.enOferta
                     ? `<span class="badge-oferta-admin">-${prod.descuento}% OFF</span>`
-                    : `<span style="color:#666; font-size:12px;">Normal</span>`;
+                    : `<span class="badge-normal-admin">Normal</span>`;
 
                 if (prod.tiempoLimitado) {
-                    estadoHTML += `<br><span class="badge-limitado-admin">⏳ ${prod.etiquetaLimitada || 'LIMITADO'} (${prod.stock || 0} pzas)</span>`;
+                    estadoHTML += ` <span class="badge-limitado-admin">${prod.etiquetaLimitada || 'LIMITADO'} (${prod.stock || 0})</span>`;
                 }
 
+                // 1. Fila para Escritorio
                 tablaBody.innerHTML += `
-                    <tr>
-                        <td><img src="${resolverRutaImagen(prod.imagen)}" alt="${prod.nombre}" onerror="this.src='Imagenes page/Gorra1.jpeg'"></td>
+                    <tr style="animation-delay: ${idx * 0.03}s;">
+                        <td><img src="${imgUrl}" alt="${prod.nombre}" onerror="this.src='Imagenes page/Gorra1.jpeg'"></td>
                         <td>
-                            <strong>${prod.nombre}</strong><br>
-                            <small style="color:#888;">${(prod.descripcion || "").substring(0, 42)}...</small>
+                            <strong style="color:#fff;">${prod.nombre}</strong><br>
+                            <small style="color:#888;">${(prod.descripcion || "").substring(0, 48)}...</small>
                         </td>
                         <td><span class="badge-cat">${prod.categoria}</span></td>
                         <td>${precioMostrar}</td>
@@ -399,15 +518,58 @@
                         <td>
                             <div class="acciones-td">
                                 <button class="btn-edit" onclick="prepararEdicion('${prod.id}')">Editar</button>
-                                <button class="btn-delete" onclick="eliminarProducto('${prod.id}', '${prod.nombre}')">Eliminar</button>
+                                <button class="btn-delete" onclick="eliminarProducto('${prod.id}', '${nombreEscapado}')">Eliminar</button>
                             </div>
                         </td>
                     </tr>
                 `;
+
+                // 2. Ítem de Acordeón para Móvil
+                acordeonMovil.innerHTML += `
+                    <div class="acc-prod-item" id="acc-item-${prod.id}" style="animation-delay: ${idx * 0.04}s;">
+                        <button type="button" class="acc-prod-trigger" onclick="toggleAcordeonProducto('${prod.id}')">
+                            <img src="${imgUrl}" alt="${prod.nombre}" onerror="this.src='Imagenes page/Gorra1.jpeg'">
+                            <div class="acc-prod-main-info">
+                                <span class="acc-prod-title">${prod.nombre}</span>
+                                <div class="acc-prod-sub">
+                                    <span>${precioMostrar} MXN</span>
+                                    ${prod.enOferta ? `<span class="mini-tag-off">-${prod.descuento}%</span>` : ''}
+                                    ${prod.tiempoLimitado ? `<span class="mini-tag-drop">DROP</span>` : ''}
+                                </div>
+                            </div>
+                            <span class="acc-chevron">▼</span>
+                        </button>
+
+                        <div class="acc-prod-panel">
+                            <div class="acc-prod-body">
+                                <p class="acc-prod-desc">${prod.descripcion || "Sin descripción."}</p>
+                                <div class="acc-prod-meta">
+                                    <span>Categoría: <strong>${prod.categoria}</strong></span>
+                                    <span>Estado: ${estadoHTML}</span>
+                                </div>
+                                <div class="acc-prod-actions">
+                                    <button type="button" class="btn-edit" onclick="prepararEdicion('${prod.id}')">Editar Producto</button>
+                                    <button type="button" class="btn-delete" onclick="eliminarProducto('${prod.id}', '${nombreEscapado}')">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
         }
 
-        // Guardar Producto
+        // Control del Acordeón Móvil
+        window.toggleAcordeonProducto = (id) => {
+            const item = document.getElementById(`acc-item-${id}`);
+            if (!item) return;
+            const yaAbierto = item.classList.contains("open");
+            document.querySelectorAll(".acc-prod-item.open").forEach(el => el.classList.remove("open"));
+            if (!yaAbierto) {
+                item.classList.add("open");
+            }
+        };
+
+        // Guardar / Actualizar Producto
         formProducto.addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = document.getElementById("prod-id").value;
@@ -419,7 +581,7 @@
 
             const imagenFinal = imagenBase64Seleccionada || imagenActual;
             if (!imagenFinal) {
-                alert("Por favor selecciona una imagen desde tu computadora.");
+                alert("Por favor selecciona una imagen desde tu dispositivo.");
                 return;
             }
 
@@ -456,10 +618,10 @@
             try {
                 if (id) {
                     await updateDoc(doc(db, "productos", id), datosProducto);
-                    mostrarAviso("✅ Producto actualizado correctamente");
+                    mostrarAviso("Producto actualizado correctamente");
                 } else {
                     await addDoc(collection(db, "productos"), datosProducto);
-                    mostrarAviso("✅ Gorra publicada en el catálogo");
+                    mostrarAviso("Gorra publicada en el catálogo");
                 }
                 resetearFormulario();
             } catch (error) {
@@ -467,11 +629,16 @@
             }
         });
 
+        // Preparar Edición y deslizar suavemente al formulario
         window.prepararEdicion = (id) => {
             const prod = listaProductosCache.find(p => p.id === id);
             if (!prod) return;
 
-            document.getElementById("form-titulo").textContent = "✏️ Editando: " + prod.nombre;
+            document.getElementById("form-titulo").textContent = "Editando: " + prod.nombre;
+            const badge = document.getElementById("mode-indicator");
+            badge.textContent = "EDITANDO";
+            badge.classList.add("editing");
+
             document.getElementById("prod-id").value = prod.id;
             document.getElementById("prod-nombre").value = prod.nombre;
             document.getElementById("prod-descripcion").value = prod.descripcion;
@@ -482,10 +649,11 @@
             document.getElementById("prod-imagen-actual").value = prod.imagen;
             previewImgUpload.src = resolverRutaImagen(prod.imagen);
             previewImgUpload.style.display = "inline-block";
-            uploadText.textContent = "📁 Clic para cambiar imagen (opcional)";
+            uploadText.textContent = "Toca para cambiar imagen (opcional)";
 
             checkOferta.checked = Boolean(prod.enOferta);
             grupoDescuento.style.display = prod.enOferta ? "block" : "none";
+            boxOferta.classList.toggle("limited-active", Boolean(prod.enOferta));
             document.getElementById("prod-descuento").value = prod.descuento || 20;
 
             checkLimitado.checked = Boolean(prod.tiempoLimitado);
@@ -502,7 +670,12 @@
 
             document.getElementById("btn-guardar-prod").textContent = "Actualizar Cambios";
             btnCancelarEdicion.style.display = "block";
-            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            // Deslizar suavemente hacia el cuadro de edición y resaltarlo
+            panelFormulario.scrollIntoView({ behavior: "smooth", block: "start" });
+            panelFormulario.classList.remove("highlight-form");
+            void panelFormulario.offsetWidth;
+            panelFormulario.classList.add("highlight-form");
         };
 
         function resetearFormulario() {
@@ -511,12 +684,18 @@
             document.getElementById("prod-id").value = "";
             document.getElementById("prod-imagen-actual").value = "";
             previewImgUpload.style.display = "none";
-            uploadText.textContent = "📁 Haz clic aquí para seleccionar imagen";
-            document.getElementById("form-titulo").textContent = "➕ Agregar Nueva Gorra";
+            uploadText.textContent = "Toca aquí para seleccionar imagen";
+            document.getElementById("form-titulo").textContent = "Agregar Nueva Gorra";
+
+            const badge = document.getElementById("mode-indicator");
+            badge.textContent = "NUEVO";
+            badge.classList.remove("editing");
+
             document.getElementById("btn-guardar-prod").textContent = "Guardar Producto";
             btnCancelarEdicion.style.display = "none";
             grupoDescuento.style.display = "none";
             grupoLimitado.style.display = "none";
+            boxOferta.classList.remove("limited-active");
             boxLimitado.classList.remove("limited-active");
         }
 
@@ -525,23 +704,46 @@
         window.eliminarProducto = async (id, nombre) => {
             if (confirm(`¿Seguro que deseas eliminar "${nombre}" del catálogo?`)) {
                 await deleteDoc(doc(db, "productos", id));
-                mostrarAviso("🗑️ Producto eliminado");
+                mostrarAviso("Producto eliminado del catálogo");
             }
         };
 
-        // Ofertas Random
+        // ==========================================
+        // MOTOR AVANZADO DE OFERTAS RANDOM
+        // ==========================================
         document.getElementById("btn-ofertas-random").addEventListener("click", async () => {
             if (listaProductosCache.length === 0) return;
 
-            const mezclados = [...listaProductosCache].sort(() => 0.5 - Math.random());
-            const elegidosIds = new Set(mezclados.slice(0, 6).map(p => p.id));
-            const porcentajes = [15, 20, 25, 30, 35, 40, 45];
+            const cantidadDeseada = Math.max(1, Number(document.getElementById("rnd-cantidad").value) || 6);
+            let minDesc = Math.max(5, Number(document.getElementById("rnd-min-desc").value) || 15);
+            let maxDesc = Math.min(90, Number(document.getElementById("rnd-max-desc").value) || 45);
+            if (minDesc > maxDesc) [minDesc, maxDesc] = [maxDesc, minDesc];
+
+            const catObjetivo = selectRndCategoria.value;
+            const excluirDrops = document.getElementById("rnd-excluir-limitados").checked;
+
+            const candidatos = listaProductosCache.filter(p => {
+                if (excluirDrops && p.tiempoLimitado) return false;
+                if (catObjetivo !== "todas" && (p.categoria || "").toLowerCase() !== catObjetivo) return false;
+                return true;
+            });
+
+            if (candidatos.length === 0) {
+                alert("No hay productos disponibles con los filtros seleccionados para aplicar ofertas.");
+                return;
+            }
+
+            const mezclados = [...candidatos].sort(() => 0.5 - Math.random());
+            const elegidosIds = new Set(mezclados.slice(0, cantidadDeseada).map(p => p.id));
 
             for (const prod of listaProductosCache) {
                 const precioBase = prod.precioOriginal || prod.precio;
                 if (elegidosIds.has(prod.id)) {
-                    const descRandom = porcentajes[Math.floor(Math.random() * porcentajes.length)];
+                    // Generar múltiplo de 5 dentro del rango elegido
+                    const pasos = Math.floor((maxDesc - minDesc) / 5);
+                    const descRandom = minDesc + (Math.floor(Math.random() * (pasos + 1)) * 5);
                     const nuevoPrecio = Math.round(precioBase * (1 - descRandom / 100));
+
                     await updateDoc(doc(db, "productos", prod.id), {
                         enOferta: true,
                         descuento: descRandom,
@@ -557,43 +759,28 @@
                     });
                 }
             }
-            mostrarAviso("🎲 ¡Nuevas ofertas aleatorias generadas!");
+            mostrarAviso(`¡${elegidosIds.size} ofertas aleatorias (${minDesc}% - ${maxDesc}%) activadas!`);
         });
 
-        // Carga Base 21 Gorras
-        document.getElementById("btn-cargar-inicial").addEventListener("click", async () => {
-            if (listaProductosCache.length > 0) {
-                if (!confirm("Ya tienes productos en Firebase. ¿Seguro que deseas agregar las 21 gorras iniciales?")) return;
+        // Quitar todas las ofertas activas
+        document.getElementById("btn-limpiar-ofertas").addEventListener("click", async () => {
+            const conOferta = listaProductosCache.filter(p => p.enOferta);
+            if (conOferta.length === 0) {
+                mostrarAviso("No hay ofertas activas actualmente");
+                return;
             }
+            if (!confirm(`¿Desactivar las ${conOferta.length} ofertas activas y restaurar precios normales?`)) return;
 
-            const productosBase = [
-                { nombre: "Golden Eagle", descripcion: "Gorra deportiva de lujo. Bordados Gold Edition en hilos metálicos 24k.", precio: 950, precioOriginal: 950, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra4.jpeg", categoria: "originales" },
-                { nombre: "Royal Gold Crown", descripcion: "Corona bordada frontal Gold Edition premium. La joya de la colección.", precio: 1200, precioOriginal: 1600, descuento: 25, enOferta: true, tiempoLimitado: false, imagen: "Gorra15.jpeg", categoria: "colaboraciones" },
-                { nombre: "Phantom Black Edition", descripcion: "Gorra ultra negra mate estilo Phantom Black, elegancia pura.", precio: 850, precioOriginal: 850, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra1.jpeg", categoria: "originales" },
-                { nombre: "Obsidian Black", descripcion: "Minimalista. Modelo Black Collection de tela premium eco-friendly.", precio: 720, precioOriginal: 720, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra2.jpeg", categoria: "originales" },
-                { nombre: "Shadow Black", descripcion: "Edición Limitada Black Panther Shadow. Oscuridad absoluta.", precio: 499, precioOriginal: 890, descuento: 45, enOferta: true, tiempoLimitado: false, imagen: "Gorra9.jpeg", categoria: "temporada" },
-                { nombre: "Negra y Blanca", descripcion: "Diseño moderno para cualquier ocasión.", precio: 489, precioOriginal: 699, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra1.jpeg", categoria: "originales" },
-                { nombre: "Gorra Negra", descripcion: "Gorra clásica de estilo urbano.", precio: 699, precioOriginal: 699, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra2.jpeg", categoria: "originales" },
-                { nombre: "Jonas Hats", descripcion: "Gorra deportiva.", precio: 485, precioOriginal: 649, descuento: 25, enOferta: true, tiempoLimitado: false, imagen: "Gorra4.jpeg", categoria: "temporada" },
-                { nombre: "Gorra YOSHI", descripcion: "Gorra Nintendo EDICION YOSHI", precio: 550, precioOriginal: 550, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra5.jpeg", categoria: "colaboraciones" },
-                { nombre: "Gorra MARIO", descripcion: "Gorra Nintendo EDICION MARIO", precio: 385, precioOriginal: 550, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra6.jpeg", categoria: "colaboraciones" },
-                { nombre: "Gorra HATSUNE MIKU", descripcion: "Gorra CRYPON FUTURE MEDIA EDICION HATSUNE MIKU", precio: 420, precioOriginal: 600, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra7.jpeg", categoria: "colaboraciones" },
-                { nombre: "Gorra KOOPA TROOPA", descripcion: "Gorra Nintendo EDICION KOOPA TROOPA.", precio: 530, precioOriginal: 530, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra8.jpeg", categoria: "colaboraciones" },
-                { nombre: "Gorra KIRBY", descripcion: "Gorra Nintendo EDICION KIRBY.", precio: 349, precioOriginal: 499, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra3.jpeg", categoria: "colaboraciones" },
-                { nombre: "AB Gothic Pink Dragon", descripcion: "Gorra con bordado gótico AB, detalles en rosa y malla con dragones orientales.", precio: 699, precioOriginal: 699, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra9.jpeg", categoria: "colaboraciones" },
-                { nombre: "Thorns & Red Star", descripcion: "Gorra urbana con estrella de estoperoles rojos y espinas bordadas en negro.", precio: 650, precioOriginal: 650, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra10.jpeg", categoria: "temporada" },
-                { nombre: "Katakana Red Flower", descripcion: "Gorra de gabardina con tipografía katakana roja y parches bordados 'W.W'.", precio: 600, precioOriginal: 600, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra11.jpeg", categoria: "colaboraciones" },
-                { nombre: "Rico Muerte Distressed", descripcion: "Gorra con visera rota deshilachada, pines metálicos y bordado 'Rico Muerte'.", precio: 525, precioOriginal: 750, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra12.jpeg", categoria: "originales" },
-                { nombre: "Anymore Club Gothic Bats", descripcion: "Gorra gótica con bordado negro 'The Anymore Club' y alas de murciélago.", precio: 490, precioOriginal: 700, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra13.jpeg", categoria: "temporada" },
-                { nombre: "Sad Boy Rhinestones", descripcion: "Gorra oscura con trébol de pedrería fina brillante y dibujos bordados a tono.", precio: 699, precioOriginal: 699, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra14.jpeg", categoria: "originales" },
-                { nombre: "FP Studded Gold Flame", descripcion: "Gorra con monograma gótico FP, pedrería negra y flamas doradas bordadas.", precio: 560, precioOriginal: 800, descuento: 30, enOferta: true, tiempoLimitado: false, imagen: "Gorra15.jpeg", categoria: "colaboraciones" },
-                { nombre: "Silver Flames 32", descripcion: "Gorra negra con tipografía metálica plateada, flamas y número 32 en visera.", precio: 649, precioOriginal: 649, descuento: 0, enOferta: false, tiempoLimitado: false, imagen: "Gorra16.jpeg", categoria: "originales" }
-            ];
-
-            for (const item of productosBase) {
-                await addDoc(collection(db, "productos"), item);
+            for (const prod of conOferta) {
+                const precioBase = prod.precioOriginal || prod.precio;
+                await updateDoc(doc(db, "productos", prod.id), {
+                    enOferta: false,
+                    descuento: 0,
+                    precio: precioBase,
+                    precioOriginal: precioBase
+                });
             }
-            mostrarAviso("✅ ¡21 gorras subidas a Firebase!");
+            mostrarAviso("Todas las ofertas fueron desactivadas");
         });
     </script>
 </body>
