@@ -38,14 +38,12 @@
             <a href="contacto.html">Contacto</a>
             <a href="ayuda.html">Ayuda</a>
         </nav>
-
-        <!-- Fila Inferior removida por orden -->
     </header>
 
     <main>
         <section class="ofertas-hero"
             style="position: relative; width: 100%; height: 55vh; overflow: hidden; margin-bottom: 30px;">
-            <video class="ofertas-hero-video" autoPlay loop muted playsInline
+            <video class="ofertas-hero-video" autoplay loop muted playsinline
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;">
                 <source src="Imagenes page/videoofertas.mp4" type="video/mp4">
             </video>
@@ -61,7 +59,7 @@
         </section>
 
         <!-- Contenedor dinámico por secciones (Se llenará solo con ofertas) -->
-        <div id="contenedor-productos"></div>
+        <div id="contenedor-productos" style="max-width: 1400px; margin: 0 auto; padding: 0 30px 50px 30px;"></div>
 
         <!-- CARRITO LATERAL -->
         <aside id="carrito">
@@ -192,8 +190,8 @@
         </div>
     </footer>
 
-    <script src="tienda.js"></script>
-    <script src="gorras.js"></script>
+    <script type="module" src="tienda.js"></script>
+    <script type="module" src="gorras.js"></script>
     <script src="carrito.js"></script>
 </body>
 

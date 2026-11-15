@@ -1,5 +1,15 @@
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Limpiar datos globales viejos compartidos de pruebas anteriores
+localStorage.removeItem("historial_compras");
+
+function obtenerKeyHistorialCuenta(email) {
+    return "historial_compras_" + (email || "guest").toLowerCase();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("token");
     const authWall = document.getElementById("ayuda-auth-wall");
     const dashboard = document.getElementById("ayuda-dashboard");
     const userNameSpan = document.getElementById("ayuda-user-name");
@@ -27,45 +37,61 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     `;
 
-    if (!token) {
-        authWall.style.display = "block";
-        dashboard.style.display = "none";
-    } else {
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            authWall.style.display = "block";
+            dashboard.style.display = "none";
+            return;
+        }
+
         authWall.style.display = "none";
         dashboard.style.display = "block";
-        userNameSpan.textContent = localStorage.getItem("username") || "Cliente";
+        userNameSpan.textContent = localStorage.getItem("username") || user.email.split("@")[0];
 
-        cargarHistorial();
-    }
+        // Sincronizar pedidos propios desde Firestore si existen
+        let historialCuenta = JSON.parse(localStorage.getItem(obtenerKeyHistorialCuenta(user.email)) || "[]");
+        try {
+            const snap = await getDoc(doc(db, "usuarios", user.uid));
+            if (snap.exists() && Array.isArray(snap.data().pedidos)) {
+                historialCuenta = snap.data().pedidos;
+                localStorage.setItem(obtenerKeyHistorialCuenta(user.email), JSON.stringify(historialCuenta));
+            }
+        } catch (e) {
+            // Usar respaldo local de la cuenta
+        }
 
-    function cargarHistorial() {
-        const historial = JSON.parse(localStorage.getItem("historial_compras") || "[]");
+        cargarHistorial(historialCuenta);
+    });
+
+    function cargarHistorial(historial) {
         const tabla = document.getElementById("tabla-historial");
         const noMsg = document.getElementById("no-history-msg");
         const tContainer = document.getElementById("timeline-container-render");
 
-        if (historial.length === 0) {
+        if (!historial || historial.length === 0) {
+            tabla.innerHTML = "";
             noMsg.style.display = "block";
             tContainer.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">No tienes pedidos activos. Explora el catálogo.</p>';
             return;
         }
 
-        // --- RENDERIZAR TABLA HISTORIAL ---
-        tabla.innerHTML = '';
+        noMsg.style.display = "none";
+        tabla.innerHTML = "";
+
         historial.forEach((ticket, idx) => {
+            const totalTexto = ticket.pagoConPuntos ? ticket.totalVal : `$${ticket.totalVal} MXN`;
             tabla.innerHTML += `
                 <tr>
                     <td>#${ticket.ticketId}</td>
                     <td>${ticket.date}</td>
-                    <td>$${ticket.totalVal} MXN</td>
+                    <td>${totalTexto}</td>
                     <td>
-                        <button class="btn-descargar-mini" onclick="descargarTicket(${idx})">📄 Recuperar</button>
+                        <button class="btn-descargar-mini" onclick="descargarTicket(${idx})">Recuperar</button>
                     </td>
                 </tr>
             `;
         });
 
-        // --- RENDERIZAR TIMELINE DEL PEDIDO MAS RECIENTE ---
         const ultimoPedido = historial[0];
         if (ultimoPedido && ultimoPedido.en_progreso) {
             tContainer.innerHTML = timelineHTML;
@@ -84,9 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const text = document.getElementById("timeline-status-text");
 
         let width = "0%";
-
-        // Reset
-        [step1, step2, step3, step4].forEach(s => { s.classList.remove("active", "completed"); });
+        [step1, step2, step3, step4].forEach(s => s.classList.remove("active", "completed"));
 
         setTimeout(() => {
             if (estado === "Confirmado") {
@@ -109,17 +133,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 step1.classList.add("completed");
                 step2.classList.add("completed");
                 step3.classList.add("completed");
-                step4.classList.add("completed"); // o active sin brillar
-                text.textContent = "Paquete entregado. ¡Disfruta tus Diamond Hats!";
+                step4.classList.add("completed");
+                text.textContent = "Paquete entregado. Disfruta tus Diamond Hats.";
             }
             fillBar.style.width = width;
         }, 300);
     }
 });
 
-// GLOBAL FUNC PARA RECUPERAR TICKET
 window.descargarTicket = function (index) {
-    const historial = JSON.parse(localStorage.getItem("historial_compras") || "[]");
+    const email = localStorage.getItem("userEmail") || "guest";
+    const historial = JSON.parse(localStorage.getItem(obtenerKeyHistorialCuenta(email)) || "[]");
     const d = historial[index];
     if (!d) {
         alert("No hay datos de ticket disponibles.");
@@ -129,6 +153,7 @@ window.descargarTicket = function (index) {
     const downloadUrl = window.location.origin + `/descargar-ticket.html?id=${d.ticketId}`;
     const qrContent = encodeURIComponent(downloadUrl);
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrContent}`;
+    const totalTextoPDF = d.pagoConPuntos ? d.totalVal : `$${d.totalVal || '0.00'} MXN`;
 
     const html = `<!DOCTYPE html>
 <html lang="es">
@@ -148,8 +173,7 @@ window.descargarTicket = function (index) {
     .info-row:last-child { border-bottom: none; }
     .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; padding: 12px 0 0; border-top: 2px solid #cca142; margin-top: 10px; }
     .stamp-qr { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
-    .stamp { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #cca142; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #cca142; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 10px; opacity: 0.8; transform: rotate(-5deg); }
-    .stamp .diamond { font-size: 22px; margin-bottom: 4px; }
+    .stamp { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #cca142; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #cca142; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 10px; opacity: 0.85; transform: rotate(-5deg); }
     .qr-block { text-align: center; }
     .qr-block img { width: 120px; height: 120px; border: 1px solid #ddd; border-radius: 6px; }
     .qr-block p { font-size: 10px; color: #999; margin-top: 5px; }
@@ -170,21 +194,19 @@ window.descargarTicket = function (index) {
   <div class="section-title">Datos del Cliente</div>
   <div class="info-row"><span>Usuario</span><span>${d.activeUser || 'Cliente'}</span></div>
   <div class="info-row"><span>Correo</span><span>${d.emailFacturacion || '-'}</span></div>
-  <div class="info-row"><span>Titular de Tarjeta</span><span>${d.cardHolder || '-'}</span></div>
-  <div class="info-row"><span>Tarjeta</span><span>**** **** **** ${d.rawCard ? d.rawCard.substring(12) : '----'}</span></div>
+  <div class="info-row"><span>Modalidad</span><span>${d.metodoPagoTexto || d.cardHolder || '-'}</span></div>
   <div class="info-row"><span>Dirección de Envío</span><span style="font-size:12px;text-align:right;">${d.direccionCompleta || '-'}</span></div>
 
   <div class="section-title">Productos</div>
   ${d.itemsHtml ? d.itemsHtml.replace(/ticket-item-row/g, 'info-row') : ''}
 
   <div class="total-row">
-    <span>Total Pagado</span>
-    <span>$${d.totalVal || '0.00'} MXN</span>
+    <span>Total Liquidado</span>
+    <span>${totalTextoPDF}</span>
   </div>
 
   <div class="stamp-qr">
     <div class="stamp">
-      <div class="diamond">💎</div>
       <div>DIAMOND<br>HATS</div>
       <div style="font-size:8px;margin-top:4px;color:#888;">COPIA DE OFICINA</div>
     </div>
@@ -200,7 +222,7 @@ window.descargarTicket = function (index) {
 
   <script>
     window.onload = function() { setTimeout(function(){ window.print(); }, 400); };
-  </script>
+  <\/script>
 </body>
 </html>`;
 

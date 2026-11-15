@@ -4,31 +4,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Hats | Contacto</title>
+    <title>Diamond Hats | Contacto y Soporte</title>
     <link rel="stylesheet" href="tienda.css">
+    <style>
+        /* ==========================================
+           ESTILOS CENTRO DE SOPORTE Y BANDEJA GMAIL
+           ========================================== */
+        .soporte-section {
+            max-width: 1280px;
+            margin: 40px auto 10px auto;
+            padding: 0 25px;
+        }
+
+        .soporte-grid-usuario {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 26px;
+            align-items: start;
+        }
+
+        .soporte-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .soporte-card h2 {
+            color: #cca142;
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+
+        .soporte-card>p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .soporte-field {
+            margin-bottom: 14px;
+        }
+
+        .soporte-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .soporte-field input,
+        .soporte-field select,
+        .soporte-field textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #f9f9f9;
+            color: #111;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .soporte-field input:focus,
+        .soporte-field select:focus,
+        .soporte-field textarea:focus {
+            border-color: #cca142;
+        }
+
+        .soporte-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .soporte-upload-box {
+            border: 2px dashed rgba(204, 161, 66, 0.5);
+            background: rgba(204, 161, 66, 0.05);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #b0882e;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .soporte-upload-box:hover {
+            background: rgba(204, 161, 66, 0.12);
+        }
+
+        .btn-soporte-primary {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #cca142, #b0882e);
+            color: #111;
+            border: none;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 14.5px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-soporte-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(204, 161, 66, 0.35);
+        }
+
+        /* Acordeón estilo Gmail (Usuario) */
+        .dh-mail-item {
+            border: 1px solid #e2e2e2;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .dh-mail-header {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dh-mail-header:hover {
+            background: rgba(204, 161, 66, 0.08);
+        }
+
+        .dh-mail-cat-tag {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(204, 161, 66, 0.16);
+            color: #9c7621;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 6px;
+        }
+
+        .dh-mail-title {
+            font-size: 14px;
+            color: #111;
+        }
+
+        .dh-mail-date {
+            font-size: 11.5px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .dh-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .dh-status-pill.open {
+            background: rgba(46, 204, 113, 0.16);
+            color: #1e8449;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+
+        .dh-status-pill.closed {
+            background: rgba(231, 76, 60, 0.15);
+            color: #c0392b;
+            border: 1px solid rgba(231, 76, 60, 0.4);
+        }
+
+        .dh-chevron {
+            font-size: 11px;
+            color: #888;
+            transition: transform 0.25s;
+        }
+
+        .dh-mail-item.abierto .dh-chevron {
+            transform: rotate(180deg);
+        }
+
+        .dh-mail-body-wrap {
+            display: none;
+            padding: 16px;
+            border-top: 1px solid #e5e5e5;
+            background: #ffffff;
+        }
+
+        .dh-mail-item.abierto .dh-mail-body-wrap {
+            display: block;
+        }
+
+        .dh-mail-msg {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 13.5px;
+        }
+
+        .dh-mail-msg.msg-user {
+            background: #f3f3f3;
+            border-left: 3px solid #888;
+        }
+
+        .dh-mail-msg.msg-admin {
+            background: rgba(204, 161, 66, 0.12);
+            border-left: 3px solid #cca142;
+        }
+
+        .dh-mail-msg-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .dh-mail-msg-subj {
+            font-size: 12px;
+            font-weight: 700;
+            color: #cca142;
+            margin-bottom: 4px;
+        }
+
+        .dh-mail-msg-body {
+            line-height: 1.5;
+            color: #222;
+        }
+
+        .dh-mail-proof-img {
+            max-width: 160px;
+            max-height: 120px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            display: block;
+        }
+
+        .dh-reply-box {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .dh-reply-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            color: #111;
+            outline: none;
+        }
+
+        .dh-reply-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dh-attach-label {
+            font-size: 12px;
+            color: #b0882e;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 6px 12px;
+            border: 1px solid rgba(204, 161, 66, 0.5);
+            border-radius: 7px;
+        }
+
+        .dh-btn-send-reply {
+            padding: 8px 18px;
+            background: #cca142;
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 12.5px;
+            cursor: pointer;
+        }
+
+        .dh-closed-notice {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.45);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-top: 10px;
+            color: #c0392b;
+            font-size: 13px;
+        }
+
+        /* Vista Bandeja Administrador estilo Gmail */
+        .soporte-admin-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 22px;
+            background: #ffffff;
+            border: 1px solid rgba(204, 161, 66, 0.35);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .dh-admin-inbox-col {
+            border-right: 1px solid #e5e5e5;
+            padding-right: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .dh-admin-mail-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px;
+            border-radius: 11px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+
+        .dh-admin-mail-row:hover {
+            background: rgba(204, 161, 66, 0.08);
+        }
+
+        .dh-admin-mail-row.active {
+            background: rgba(204, 161, 66, 0.15);
+            border-color: #cca142;
+        }
+
+        .dh-admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #222;
+            color: #cca142;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid #cca142;
+        }
+
+        .dh-admin-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dh-reader-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .dh-btn-close-ticket {
+            padding: 8px 14px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .dh-btn-close-ticket:hover {
+            background: #c0392b;
+        }
+
+        /* ==========================================
+           MODO OSCURO COMPLETO EN CONTACTO Y SOPORTE
+           ========================================== */
+        body.dark-mode,
+        body.dark-mode .contacto-main {
+            background-color: #111111 !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .soporte-card,
+        body.dark-mode .soporte-admin-grid,
+        body.dark-mode .contacto-card {
+            background: #181818 !important;
+            border-color: rgba(212, 175, 55, 0.25) !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .soporte-card>p,
+        body.dark-mode .detail-text p {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .detail-text h3,
+        body.dark-mode .contacto-card h2 {
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .soporte-field label {
+            color: #bbb !important;
+        }
+
+        body.dark-mode .soporte-field input,
+        body.dark-mode .soporte-field select,
+        body.dark-mode .soporte-field textarea,
+        body.dark-mode .dh-reply-input {
+            background: #222222 !important;
+            border-color: #363636 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .dh-mail-item {
+            background: #1f1f1f !important;
+            border-color: #333 !important;
+        }
+
+        body.dark-mode .dh-mail-title {
+            color: #fff !important;
+        }
+
+        body.dark-mode .dh-mail-body-wrap {
+            background: #161616 !important;
+            border-top-color: #2e2e2e !important;
+        }
+
+        body.dark-mode .dh-mail-msg.msg-user {
+            background: #242424 !important;
+        }
+
+        body.dark-mode .dh-mail-msg-body {
+            color: #e8e8e8 !important;
+        }
+
+        body.dark-mode .dh-admin-inbox-col {
+            border-right-color: #2e2e2e !important;
+        }
+
+        @media (max-width: 900px) {
+
+            .soporte-grid-usuario,
+            .soporte-admin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dh-admin-inbox-col {
+                border-right: none;
+                border-bottom: 1px solid #333;
+                padding-right: 0;
+                padding-bottom: 14px;
+            }
+
+            .soporte-row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <!-- HEADER -->
     <header class="header">
         <div class="header-container">
-            <!-- Logo -->
             <div class="logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats">
             </div>
-            <!-- Iconos -->
-            <div class="icons">
-            </div>
-            <!-- Menu movil -->
+            <div class="icons"></div>
             <div class="menu-btn">☰</div>
         </div>
-        <!-- NAVBAR -->
         <nav class="navbar">
             <a href="tienda.html">Inicio</a>
             <a href="gorras.html">Gorras</a>
             <a href="ofertas.html">Ofertas</a>
             <a href="contacto.html">Contacto</a>
-            <a href="ayuda.html"> Ayuda </a>
+            <a href="ayuda.html">Ayuda</a>
         </nav>
     </header>
 
@@ -40,20 +507,115 @@
             </video>
             <div class="contacto-hero-overlay"></div>
             <div class="contacto-hero-text">
-                <h1>Contacto</h1>
-                <p>Estamos aquí para ayudarte. Ponte en contacto con nosotros.</p>
+                <h1>Contacto y Soporte</h1>
+                <p>Estamos aquí para ayudarte. Reporta cualquier inconveniente o contáctanos.</p>
             </div>
         </section>
 
+        <!-- NUEVA SECCIÓN: FORMULARIO DE PROBLEMAS Y BANDEJA DE CORREOS (ARRIBA DEL MAPA) -->
+        <section class="soporte-section">
+            <!-- 1. Vista para visitantes sin sesión -->
+            <div id="soporte-guest-wall" class="soporte-card"
+                style="display:none; text-align:center; max-width:620px; margin:0 auto;">
+                <h2>Centro de Atención y Reclamos</h2>
+                <p>Inicia sesión o crea tu cuenta para reportar un problema con tu pedido o la página y recibir
+                    seguimiento directo de nuestro equipo.</p>
+                <button type="button" class="btn-soporte-primary" style="max-width:280px;"
+                    onclick="document.getElementById('modal-auth').classList.add('activo')">
+                    Iniciar Sesión / Registrarse
+                </button>
+            </div>
+
+            <!-- 2. Vista para Usuarios Registrados (Formulario + Bandeja Acordeón) -->
+            <div id="soporte-usuario-grid" class="soporte-grid-usuario" style="display:none;">
+                <!-- Izquierda: Formulario de reporte -->
+                <div class="soporte-card">
+                    <h2>Reportar un Problema</h2>
+                    <p>Cuéntanos qué ocurrió y adjunta pruebas si lo deseas. Te responderemos a la brevedad.</p>
+
+                    <form id="form-nueva-queja">
+                        <div class="soporte-row-2">
+                            <div class="soporte-field">
+                                <label for="queja-nombre">Nombre Completo</label>
+                                <input type="text" id="queja-nombre" placeholder="Tu nombre" required>
+                            </div>
+                            <div class="soporte-field">
+                                <label for="queja-correo">Correo Registrado</label>
+                                <input type="email" id="queja-correo" required>
+                            </div>
+                        </div>
+
+                        <div class="soporte-row-2">
+                            <div class="soporte-field">
+                                <label for="queja-categoria">Categoría del Problema</label>
+                                <select id="queja-categoria" required>
+                                    <option value="Problema con una Compra">Problema con una Compra</option>
+                                    <option value="Fallo en la Página Web">Fallo en la Página Web</option>
+                                    <option value="Pagos, Tarjetas o Puntos VIP">Pagos, Tarjetas o Puntos VIP</option>
+                                    <option value="Envíos y Entregas">Envíos y Entregas</option>
+                                    <option value="Otro Motivo">Otro Motivo</option>
+                                </select>
+                            </div>
+                            <div class="soporte-field">
+                                <label for="queja-asunto">Asunto</label>
+                                <input type="text" id="queja-asunto" placeholder="Resumen breve del problema" required>
+                            </div>
+                        </div>
+
+                        <div class="soporte-field">
+                            <label for="queja-descripcion">Descripción Detallada</label>
+                            <textarea id="queja-descripcion" rows="4"
+                                placeholder="Explica lo sucedido con el mayor detalle posible..." required></textarea>
+                        </div>
+
+                        <div class="soporte-field">
+                            <label>Pruebas o Capturas (Opcional)</label>
+                            <div class="soporte-upload-box" id="box-prueba-usuario">
+                                <span id="text-prueba-usuario">Seleccionar captura o prueba (opcional)</span>
+                                <img id="preview-prueba-usuario" src="" alt="Vista previa"
+                                    style="display:none; max-width:120px; margin:8px auto 0; border-radius:8px; border:1px solid #cca142;">
+                                <input type="file" id="queja-file-usuario" accept="image/*" style="display:none;">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-enviar-queja" class="btn-soporte-primary">Enviar Reporte</button>
+                    </form>
+                </div>
+
+                <!-- Derecha: Acordeón Bandeja de Mensajes -->
+                <div class="soporte-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <h2 style="margin:0;">Bandeja de Seguimiento</h2>
+                        <span class="dh-mail-cat-tag" id="contador-mis-quejas">0</span>
+                    </div>
+                    <p>Consulta el estado de tus reportes y responde directamente a soporte.</p>
+
+                    <div id="usuario-quejas-acordeon"></div>
+                </div>
+            </div>
+
+            <!-- 3. Vista Exclusiva Administrador (Bandeja estilo Gmail) -->
+            <div id="soporte-admin-inbox" class="soporte-admin-grid" style="display:none;">
+                <div class="dh-admin-inbox-col">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <h2 style="color:#cca142; font-size:1.25rem; margin:0;">Bandeja de Quejas</h2>
+                        <span class="dh-mail-cat-tag" id="admin-inbox-count">0</span>
+                    </div>
+                    <div id="admin-inbox-list"></div>
+                </div>
+
+                <div id="admin-inbox-reader"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN ORIGINAL: TARJETA DE INFORMACIÓN Y MAPA -->
         <section class="contacto-content">
             <div class="contacto-grid">
-                <!-- Columna Izquierda: Tarjeta de Información -->
                 <div class="contacto-card">
                     <h2>Diamond Hats</h2>
                     <p class="contacto-tagline">Distribuidor Premium de Gorras en México</p>
 
                     <div class="contacto-details">
-                        <!-- Teléfono -->
                         <div class="detail-item">
                             <span class="detail-icon">📞</span>
                             <div class="detail-text">
@@ -62,7 +624,6 @@
                             </div>
                         </div>
 
-                        <!-- Correo -->
                         <div class="detail-item">
                             <span class="detail-icon">✉️</span>
                             <div class="detail-text">
@@ -71,7 +632,6 @@
                             </div>
                         </div>
 
-                        <!-- Dirección -->
                         <div class="detail-item">
                             <span class="detail-icon">📍</span>
                             <div class="detail-text">
@@ -81,7 +641,6 @@
                             </div>
                         </div>
 
-                        <!-- Horarios -->
                         <div class="detail-item">
                             <span class="detail-icon">🕒</span>
                             <div class="detail-text">
@@ -92,7 +651,6 @@
                         </div>
                     </div>
 
-                    <!-- Redes Sociales de Contacto -->
                     <div class="contacto-socials">
                         <h3>Síguenos en Redes</h3>
                         <div class="socials-wrapper">
@@ -103,10 +661,8 @@
                     </div>
                 </div>
 
-                <!-- Columna Derecha: Mapa de Google -->
                 <div class="contacto-map">
                     <div class="map-wrapper">
-                        <!-- Mapa Embebido de Google Maps -->
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1881.258385966453!2d-99.16335198453472!3d19.428389650390977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff35f5c35b0b%3A0xe7f9202a0a2df339!2sPaseo%20de%20la%20Reforma%20222%2C%20Ju%C3%A1rez%2C%20Cuauht%C3%A9moc%2C%2006600%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX!5e0!3m2!1ses-419!2smx!4v1650000000000!5m2!1ses-419!2smx"
                             width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
@@ -121,35 +677,25 @@
     <!-- FOOTER -->
     <footer class="footer">
         <div class="footer-container">
-            <!-- Izquierda: Logo -->
             <div class="footer-logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats Logo">
             </div>
-
-            <!-- Centro: Copyright -->
             <div class="footer-copy">
                 <p>&copy; 2026 Diamond Hats. Todos los derechos reservados.</p>
             </div>
-
-            <!-- Derecha: Redes Sociales -->
             <div class="footer-social">
-                <!-- Facebook -->
                 <a href="https://facebook.com" target="_blank" aria-label="Facebook">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
                             d="M9 8H7v3h2v9h4v-9h3.6l.4-3H13V6c0-.5.5-1 1-1h3V1H13c-3 0-5 2-5 5v2z" />
                     </svg>
                 </a>
-
-                <!-- Instagram -->
                 <a href="https://instagram.com" target="_blank" aria-label="Instagram">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
                             d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                     </svg>
                 </a>
-
-                <!-- TikTok -->
                 <a href="https://tiktok.com" target="_blank" aria-label="TikTok">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
@@ -160,7 +706,8 @@
         </div>
     </footer>
 
-    <script src="tienda.js"></script>
+    <script type="module" src="tienda.js"></script>
+    <script type="module" src="contacto.js"></script>
 </body>
 
 </html>

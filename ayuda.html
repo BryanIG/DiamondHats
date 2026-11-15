@@ -4,30 +4,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Hats | Centro de Ayuda & Pedidos</title>
-    <!-- Mismas fuentes y estilos base globales -->
+    <title>Diamond Hats | Centro de Ayuda y Pedidos</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="tienda.css">
-
-    <!-- Librerias requeridas para generar los PDF dinamicamente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* Modo Oscuro Real para Ayuda y Rastreo */
+        body.dark-mode,
+        body.dark-mode .contacto-main,
+        body.dark-mode .ayuda-container {
+            background-color: #111111 !important;
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .ayuda-card,
+        body.dark-mode .auth-lock-container {
+            background-color: #1a1a1a !important;
+            border: 1px solid rgba(212, 175, 55, 0.25) !important;
+            color: #f5f5f5 !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65) !important;
+        }
+
+        body.dark-mode .ayuda-welcome,
+        body.dark-mode .ayuda-card h3 {
+            color: #f5f5f5 !important;
+        }
+
+        body.dark-mode .history-table th {
+            color: #d4af37 !important;
+            border-bottom: 1px solid #333 !important;
+        }
+
+        body.dark-mode .history-table td {
+            color: #e0e0e0 !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+
+        body.dark-mode .btn-descargar-mini {
+            background: rgba(212, 175, 55, 0.14) !important;
+            border: 1px solid #d4af37 !important;
+            color: #f3d266 !important;
+        }
+
+        body.dark-mode .btn-descargar-mini:hover {
+            background: #d4af37 !important;
+            color: #111111 !important;
+        }
+    </style>
 </head>
 
 <body>
     <!-- HEADER -->
     <header class="header">
         <div class="header-container">
-            <!-- Logo -->
             <div class="logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats">
             </div>
-            <!-- Iconos -->
-            <div class="icons">
-            </div>
-            <!-- Menu movil -->
+            <div class="icons"></div>
             <div class="menu-btn">☰</div>
         </div>
-        <!-- NAVBAR -->
         <nav class="navbar">
             <a href="tienda.html">Inicio</a>
             <a href="gorras.html">Gorras</a>
@@ -45,13 +80,13 @@
             </video>
             <div class="contacto-hero-overlay"></div>
             <div class="contacto-hero-text">
-                <h1>Tu Cuenta & Envios</h1>
+                <h1>Tu Cuenta y Envíos</h1>
                 <p>Revisa tu historial de compras y rastrea tus pedidos en vivo.</p>
             </div>
         </section>
 
         <section class="ayuda-container">
-            <!-- Auth Lock Notice -->
+            <!-- Aviso sin sesión -->
             <div id="ayuda-auth-wall" class="auth-lock-container"
                 style="display:none; text-align:center; padding:50px;">
                 <h2 style="color:#cca142;">Acceso Restringido</h2>
@@ -63,25 +98,23 @@
                 </div>
             </div>
 
-            <!-- Panel de Ayuda (Visible Solo Login) -->
+            <!-- Panel de Ayuda (Visible Solo con Sesión) -->
             <div id="ayuda-dashboard" style="display:none;">
                 <h2 class="ayuda-welcome">Bienvenido de vuelta, <span id="ayuda-user-name"
                         style="color:#cca142;">Cliente</span></h2>
 
                 <div class="ayuda-grid">
-                    <!-- TIMELINE: Estado del ultimo pedido -->
+                    <!-- TIMELINE: Estado del último pedido -->
                     <div class="ayuda-card">
-                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">📦 Pedidos
+                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">Pedidos
                             en Curso</h3>
-                        <div id="timeline-container-render">
-                            <!-- Se renderiza via JS -->
-                        </div>
+                        <div id="timeline-container-render"></div>
                     </div>
 
-                    <!-- HISTORIAL: Tickets guardados -->
+                    <!-- HISTORIAL: Tickets guardados por cuenta -->
                     <div class="ayuda-card">
-                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">📄
-                            Historial de Compras</h3>
+                        <h3 style="margin-bottom:15px; border-bottom:1px solid #cca142; padding-bottom:10px;">Historial
+                            de Compras</h3>
                         <div style="overflow-x:auto;">
                             <table class="history-table">
                                 <thead>
@@ -92,9 +125,7 @@
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tabla-historial">
-                                    <!-- Llenado dinámico vía JS -->
-                                </tbody>
+                                <tbody id="tabla-historial"></tbody>
                             </table>
                             <p id="no-history-msg" style="display:none; padding:20px; color:#aaa; text-align:center;">No
                                 tienes compras registradas aún.</p>
@@ -108,35 +139,25 @@
     <!-- FOOTER -->
     <footer class="footer">
         <div class="footer-container">
-            <!-- Izquierda: Logo -->
             <div class="footer-logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats Logo">
             </div>
-
-            <!-- Centro: Copyright -->
             <div class="footer-copy">
                 <p>&copy; 2026 Diamond Hats. Todos los derechos reservados.</p>
             </div>
-
-            <!-- Derecha: Redes Sociales -->
             <div class="footer-social">
-                <!-- Facebook -->
                 <a href="https://facebook.com" target="_blank" aria-label="Facebook">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
                             d="M9 8H7v3h2v9h4v-9h3.6l.4-3H13V6c0-.5.5-1 1-1h3V1H13c-3 0-5 2-5 5v2z" />
                     </svg>
                 </a>
-
-                <!-- Instagram -->
                 <a href="https://instagram.com" target="_blank" aria-label="Instagram">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
                             d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                     </svg>
                 </a>
-
-                <!-- TikTok -->
                 <a href="https://tiktok.com" target="_blank" aria-label="TikTok">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
@@ -147,11 +168,10 @@
         </div>
     </footer>
 
-    <!-- Contenedor invisible para renderizar PDF de tickets historicos -->
     <div id="hidden-pdf-render" style="display:none; position:absolute; top:-9999px;"></div>
 
-    <script src="tienda.js"></script>
-    <script src="ayuda.js"></script>
+    <script type="module" src="tienda.js"></script>
+    <script type="module" src="ayuda.js"></script>
 </body>
 
 </html>

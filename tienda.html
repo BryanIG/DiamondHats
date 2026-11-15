@@ -12,39 +12,25 @@
     <!-- HEADER -->
     <header class="header">
         <div class="header-container">
-            <!-- Logo -->
             <div class="logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats">
             </div>
 
-            <!-- Iconos -->
-            <div class="icons">
-            </div>
-            <!-- Menu movil -->
-            <div class="menu-btn">
-                ☰
-            </div>
+            <div class="icons"></div>
+
+            <div class="menu-btn">☰</div>
         </div>
+
         <!-- NAVBAR -->
         <nav class="navbar">
-            <a href="tienda.html">
-                Inicio
-            </a>
-            <a href="gorras.html">
-                Gorras
-            </a>
-
-            <a href="ofertas.html">
-                Ofertas
-            </a>
-            <a href="contacto.html">
-                Contacto
-            </a>
-            <a href="ayuda.html">
-                Ayuda
-            </a>
+            <a href="tienda.html">Inicio</a>
+            <a href="gorras.html">Gorras</a>
+            <a href="ofertas.html">Ofertas</a>
+            <a href="contacto.html">Contacto</a>
+            <a href="ayuda.html">Ayuda</a>
         </nav>
     </header>
+
     <!-- CONTENIDO PRINCIPAL -->
     <main>
         <section class="hero">
@@ -53,17 +39,10 @@
             </video>
             <div class="hero-overlay"></div>
             <div class="hero-text">
-                <h1>
-                    Encuentra tu estilo
-                </h1>
-                <p>
-                    Gorras premium para personas con actitud.
-                </p>
-                <a href="gorras.html" class="btn-ver-coleccion">
-                    Ver colección
-                </a>
+                <h1>Encuentra tu estilo</h1>
+                <p>Gorras premium para personas con actitud.</p>
+                <a href="gorras.html" class="btn-ver-coleccion">Ver colección</a>
             </div>
-
         </section>
 
         <!-- SECCIÓN 1: DORADA -->
@@ -79,7 +58,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN INVITATION CON VIDEO -->
+        <!-- SECCIÓN INVITACIÓN CON VIDEO -->
         <section class="landing-section"
             style="position: relative; height: 50vh; min-height: 400px; display:flex; align-items:center; justify-content:center; overflow:hidden; border-top: 2px solid rgba(204,161,66,0.5); border-bottom: 2px solid rgba(204,161,66,0.5);">
             <video autoplay loop muted playsinline
@@ -99,8 +78,7 @@
                     <strong>Ofertas Únicas Ocultas</strong> del catálogo y habilitar
                     nuestra herramienta <strong>Mis Favoritos</strong> para armar tu colección personal.
                 </p>
-                <button class="btn btn-gold"
-                    onclick="document.getElementById('modal-auth') ? document.getElementById('modal-auth').classList.add('activo') : alert('Recarga y pulsa el botón del usuario arriba.')"
+                <button class="btn btn-gold" onclick="document.getElementById('modal-auth')?.classList.add('activo')"
                     style="font-weight: bold; font-size: 1.1rem; padding: 15px 40px; box-shadow: 0 0 25px rgba(204, 161, 66, 0.6); letter-spacing:2px; text-transform:uppercase;">Regístrate</button>
             </div>
         </section>
@@ -123,8 +101,7 @@
                 <div class="section-history-left">
                     <h2>Confort & Calidad Premium</h2>
                     <p class="intro-text">Creadas con materiales ecológicos y transpirables para brindarte la mayor
-                        comodidad durante todo el
-                        día. Diseñadas para resistir el paso del tiempo.</p>
+                        comodidad durante todo el día. Diseñadas para resistir el paso del tiempo.</p>
                     <div class="story-content">
                         <h3>Nuestra Historia</h3>
                         <p>Diamond Hats nació en un pequeño taller con un gran sueño: redefinir el concepto de la gorra
@@ -148,19 +125,15 @@
     <!-- FOOTER -->
     <footer class="footer">
         <div class="footer-container">
-            <!-- Izquierda: Logo -->
             <div class="footer-logo">
                 <img src="Imagenes page/Header1.png" alt="Diamond Hats Logo">
             </div>
 
-            <!-- Centro: Copyright -->
             <div class="footer-copy">
                 <p>&copy; 2026 Diamond Hats. Todos los derechos reservados.</p>
             </div>
 
-            <!-- Derecha: Redes Sociales -->
             <div class="footer-social">
-                <!-- Facebook -->
                 <a href="https://facebook.com" target="_blank" aria-label="Facebook">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
@@ -168,7 +141,6 @@
                     </svg>
                 </a>
 
-                <!-- Instagram -->
                 <a href="https://instagram.com" target="_blank" aria-label="Instagram">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
@@ -176,7 +148,6 @@
                     </svg>
                 </a>
 
-                <!-- TikTok -->
                 <a href="https://tiktok.com" target="_blank" aria-label="TikTok">
                     <svg viewBox="0 0 24 24" class="social-icon">
                         <path fill="currentColor"
@@ -187,7 +158,7 @@
         </div>
     </footer>
 
-    <script src="tienda.js"></script>
+    <script type="module" src="tienda.js"></script>
 </body>
 
 </html>
