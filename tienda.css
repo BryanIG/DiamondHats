@@ -91,6 +91,11 @@ body {
     box-shadow: 0 0 8px #e74c3c;
 }
 
+.menu-btn.has-notif-green::before {
+    background: #2ecc71;
+    box-shadow: 0 0 8px #2ecc71;
+}
+
 .navbar {
     display: flex;
     justify-content: center;
@@ -117,7 +122,7 @@ body {
 }
 
 /* ==========================================
-   NOTIFICACIONES EN BOTÓN CONTACTO (DORADO / ROJO)
+   NOTIFICACIONES EN BOTÓN CONTACTO (DORADO / ROJO / VERDE)
    ========================================== */
 .nav-contact-gold {
     background: rgba(212, 175, 55, 0.18) !important;
@@ -143,6 +148,18 @@ body.dark-mode .nav-contact-red {
     color: #ff7675 !important;
 }
 
+.nav-contact-green {
+    background: rgba(46, 204, 113, 0.18) !important;
+    border: 1px solid #2ecc71 !important;
+    color: #1e8449 !important;
+    box-shadow: 0 0 14px rgba(46, 204, 113, 0.5) !important;
+    animation: dhPulseGreenNav 1.6s infinite alternate;
+}
+
+body.dark-mode .nav-contact-green {
+    color: #55efc4 !important;
+}
+
 @keyframes dhPulseGoldNav {
     from {
         box-shadow: 0 0 6px rgba(212, 175, 55, 0.25);
@@ -160,6 +177,16 @@ body.dark-mode .nav-contact-red {
 
     to {
         box-shadow: 0 0 18px rgba(231, 76, 60, 0.85);
+    }
+}
+
+@keyframes dhPulseGreenNav {
+    from {
+        box-shadow: 0 0 6px rgba(46, 204, 113, 0.3);
+    }
+
+    to {
+        box-shadow: 0 0 18px rgba(46, 204, 113, 0.85);
     }
 }
 
@@ -186,6 +213,12 @@ body.dark-mode .nav-contact-red {
     background: linear-gradient(135deg, #ff6b6b, #e74c3c);
     color: #ffffff;
     box-shadow: 0 0 8px rgba(231, 76, 60, 0.65);
+}
+
+.dh-nav-badge.green {
+    background: linear-gradient(135deg, #55efc4, #2ecc71);
+    color: #111111;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.65);
 }
 
 /* ==========================================
@@ -360,7 +393,6 @@ body.dark-mode .nav-contact-red {
     color: #ccc;
 }
 
-/* Historia */
 .section-history {
     background-color: #F5F2EB;
     color: #111;
@@ -491,9 +523,7 @@ body.dark-mode .nav-contact-red {
     color: #cca142;
 }
 
-/* ==========================================
-   BOTONES TEMA Y PERFIL EN HEADER
-   ========================================== */
+/* BOTONES TEMA Y PERFIL EN HEADER */
 .user-btn,
 .theme-toggle-btn {
     background: transparent;
@@ -518,9 +548,7 @@ body.dark-mode .nav-contact-red {
     transform: scale(1.05);
 }
 
-/* ==========================================
-   DISEÑO RESPONSIVO MÓVIL (HEADER COMPACTO CON ACORDEÓN A LA IZQUIERDA)
-   ========================================== */
+/* RESPONSIVO MÓVIL */
 @media (max-width: 900px) {
     .header {
         padding: 0 !important;
@@ -712,9 +740,7 @@ body.dark-mode .nav-contact-red {
     }
 }
 
-/* ==========================================
-   MODALES BASE Y AUTH
-   ========================================== */
+/* MODALES BASE Y AUTH */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -844,9 +870,7 @@ body.dark-mode .nav-contact-red {
     margin-top: 10px;
 }
 
-/* ==========================================
-   CONTACTO, AYUDA Y TICKETS
-   ========================================== */
+/* CONTACTO HERO Y TARJETAS BASE */
 .contacto-main {
     background: #fafafa;
 }
@@ -1120,9 +1144,7 @@ body.dark-mode .nav-contact-red {
     left: 2em;
 }
 
-/* ==========================================
-   DARK MODE GLOBAL
-   ========================================== */
+/* DARK MODE GLOBAL */
 body.dark-mode {
     background-color: #141414 !important;
     color: #f5f5f7 !important;
